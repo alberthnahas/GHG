@@ -1,0 +1,295 @@
+# number_of_header_lines: 54
+# comment:  
+# comment:  ************ USE OF GML DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the scientific
+# comment: community in the belief that their wide dissemination will lead to
+# comment: greater understanding and new scientific insights. To ensure that GML
+# comment: receives fair credit for their work please include relevant citation
+# comment: text in publications. We encourage users to contact the data providers,
+# comment: who can provide detailed information about the measurements and
+# comment: scientific insight.  In cases where the data are central to a
+# comment: publication, coauthorship for data providers may be appropriate.
+# comment: 
+# comment: 
+# comment: Please see accompanying README file, if available, for citation text.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: SF6 CCGG (Individual Flasks)
+# contact_name: Xin Lan
+# contact_telephone: (999) 999-9999
+# contact_email: xin.lan@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: Bureau of Meteorology and Geophysics [BMG]
+# collaborator_comment: DHL account#: 540377880
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: bkt
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2026-07-17 01:39:29
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at https://gml.noaa.gov/aftp/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+BKT 2004  1     5.48
+BKT 2004  2     5.46
+BKT 2004  3     5.41
+BKT 2004  4     5.39
+BKT 2004  5     5.37
+BKT 2004  6     5.36
+BKT 2004  7     5.38
+BKT 2004  8     5.40
+BKT 2004  9     5.43
+BKT 2004 10     5.49
+BKT 2004 11     5.59
+BKT 2004 12     5.70
+BKT 2005  1     5.74
+BKT 2005  2     5.73
+BKT 2005  3     5.68
+BKT 2005  4     5.62
+BKT 2005  5     5.57
+BKT 2005  6     5.58
+BKT 2005  7     5.61
+BKT 2005  8     5.64
+BKT 2005  9     5.66
+BKT 2005 10     5.70
+BKT 2005 11     5.74
+BKT 2005 12     5.80
+BKT 2006  1     5.88
+BKT 2006  2     5.92
+BKT 2006  3     5.88
+BKT 2006  4     5.82
+BKT 2006  5     5.82
+BKT 2006  6     5.84
+BKT 2006  7     5.85
+BKT 2006  8     5.87
+BKT 2006  9     5.89
+BKT 2006 10     5.89
+BKT 2006 11     5.96
+BKT 2006 12     6.10
+BKT 2007  1     6.19
+BKT 2007  2     6.19
+BKT 2007  3     6.14
+BKT 2007  4     6.10
+BKT 2007  5     6.09
+BKT 2007  6     6.10
+BKT 2007  7     6.10
+BKT 2007  8     6.12
+BKT 2007  9     6.18
+BKT 2007 10     6.24
+BKT 2007 11     6.32
+BKT 2007 12     6.41
+BKT 2008  1     6.47
+BKT 2008  2     6.49
+BKT 2008  3     6.45
+BKT 2008  4     6.40
+BKT 2008  5     6.36
+BKT 2008  6     6.36
+BKT 2008  7     6.41
+BKT 2008  8     6.46
+BKT 2008  9     6.47
+BKT 2008 10     6.48
+BKT 2008 11     6.56
+BKT 2008 12     6.68
+BKT 2009  1     6.78
+BKT 2009  2     6.76
+BKT 2009  3     6.71
+BKT 2009  4     6.67
+BKT 2009  5     6.64
+BKT 2009  6     6.64
+BKT 2009  7     6.68
+BKT 2009  8     6.71
+BKT 2009  9     6.73
+BKT 2009 10     6.78
+BKT 2009 11     6.91
+BKT 2009 12     7.03
+BKT 2010  1     7.09
+BKT 2010  2     7.08
+BKT 2010  3     7.04
+BKT 2010  4     6.98
+BKT 2010  5     6.95
+BKT 2010  6     6.96
+BKT 2010  7     7.00
+BKT 2010  8     7.02
+BKT 2010  9     7.04
+BKT 2010 10     7.07
+BKT 2010 11     7.12
+BKT 2010 12     7.22
+BKT 2011  1     7.33
+BKT 2011  2     7.35
+BKT 2013  2     8.00
+BKT 2013  3     7.94
+BKT 2013  4     7.87
+BKT 2013  5     7.82
+BKT 2013  6     7.82
+BKT 2013  7     7.86
+BKT 2013  8     7.89
+BKT 2013  9     7.93
+BKT 2013 10     8.02
+BKT 2013 11     8.14
+BKT 2013 12     8.24
+BKT 2014  1     8.36
+BKT 2014  2     8.41
+BKT 2014  3     8.38
+BKT 2014  4     8.28
+BKT 2014  5     8.16
+BKT 2014  6     8.13
+BKT 2014  7     8.19
+BKT 2014  8     8.23
+BKT 2014  9     8.25
+BKT 2014 10     8.32
+BKT 2014 11     8.49
+BKT 2014 12     8.64
+BKT 2015  1     8.76
+BKT 2015  2     8.75
+BKT 2015  3     8.64
+BKT 2015  4     8.52
+BKT 2015  5     8.48
+BKT 2015  6     8.48
+BKT 2015  7     8.51
+BKT 2015  8     8.54
+BKT 2015  9     8.57
+BKT 2015 10     8.63
+BKT 2015 11     8.70
+BKT 2015 12     8.82
+BKT 2016  1     8.96
+BKT 2016  2     9.02
+BKT 2016  3     9.00
+BKT 2016  4     8.92
+BKT 2016  5     8.83
+BKT 2016  6     8.80
+BKT 2016  7     8.84
+BKT 2016  8     8.87
+BKT 2016  9     8.88
+BKT 2016 10     8.91
+BKT 2016 11     9.00
+BKT 2016 12     9.13
+BKT 2017  1     9.22
+BKT 2017  2     9.26
+BKT 2017  3     9.25
+BKT 2017  4     9.20
+BKT 2017  5     9.16
+BKT 2017  6     9.17
+BKT 2017  7     9.20
+BKT 2017  8     9.20
+BKT 2017  9     9.21
+BKT 2017 10     9.29
+BKT 2017 11     9.44
+BKT 2017 12     9.57
+BKT 2018  1     9.67
+BKT 2018  2     9.72
+BKT 2018  3     9.66
+BKT 2018  4     9.55
+BKT 2018  5     9.52
+BKT 2018  6     9.52
+BKT 2018  7     9.51
+BKT 2018  8     9.52
+BKT 2018  9     9.57
+BKT 2018 10     9.65
+BKT 2018 11     9.78
+BKT 2018 12     9.89
+BKT 2019  1     9.94
+BKT 2019  2     9.97
+BKT 2019  3     9.95
+BKT 2019  4     9.87
+BKT 2019  5     9.80
+BKT 2019  6     9.83
+BKT 2019  7     9.87
+BKT 2019  8     9.90
+BKT 2019  9     9.91
+BKT 2019 10     9.96
+BKT 2019 11    10.14
+BKT 2019 12    10.34
+BKT 2020  1    10.47
+BKT 2020  2    10.41
+BKT 2020  3    10.28
+BKT 2020  4    10.20
+BKT 2020  5    10.18
+BKT 2020  6    10.17
+BKT 2020  7    10.19
+BKT 2020  8    10.23
+BKT 2020  9    10.25
+BKT 2020 10    10.33
+BKT 2020 11    10.53
+BKT 2020 12    10.75
+BKT 2021  1    10.86
+BKT 2021  2    10.81
+BKT 2021  3    10.68
+BKT 2021  4    10.56
+BKT 2021  5    10.53
+BKT 2021  6    10.55
+BKT 2021  7    10.57
+BKT 2021  8    10.59
+BKT 2021  9    10.62
+BKT 2021 10    10.68
+BKT 2021 11    10.77
+BKT 2021 12    10.92
+BKT 2022  1    11.03
+BKT 2022  2    11.02
+BKT 2022  3    11.00
+BKT 2022  4    10.98
+BKT 2022  5    10.94
+BKT 2022  6    10.92
+BKT 2022  7    10.94
+BKT 2022  8    10.98
+BKT 2022  9    11.01
+BKT 2022 10    11.05
+BKT 2022 11    11.15
+BKT 2022 12    11.37
+BKT 2023  1    11.52
+BKT 2023  2    11.54
+BKT 2023  3    11.52
+BKT 2023  4    11.46
+BKT 2023  5    11.39
+BKT 2023  6    11.35
+BKT 2023  7    11.35
+BKT 2023  8    11.37
+BKT 2023  9    11.38
+BKT 2023 10    11.38
+BKT 2023 11    11.51
+BKT 2023 12    11.80
+BKT 2024  1    11.98
+BKT 2024  2    11.96
+BKT 2024  3    11.88
+BKT 2024  4    11.83
+BKT 2024  5    11.75
+BKT 2024  6    11.72
+BKT 2024  7    11.74
+BKT 2024  8    11.77
+BKT 2024  9    11.79
+BKT 2024 10    11.84
+BKT 2024 11    12.01
+BKT 2024 12    12.26
+BKT 2025  1    12.47
+BKT 2025  2    12.45
+BKT 2025  3    12.32
+BKT 2025  4    12.19
+BKT 2025  5    12.11
+BKT 2025  6    12.12
+BKT 2025  7    12.18
+BKT 2025  8    12.24
+BKT 2025  9    12.26
+BKT 2025 10    12.29
+BKT 2025 11    12.49
+BKT 2025 12    12.79

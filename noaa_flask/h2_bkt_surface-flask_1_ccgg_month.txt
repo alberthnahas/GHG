@@ -1,0 +1,206 @@
+# number_of_header_lines: 54
+# comment:  
+# comment:  ************ USE OF GML DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the scientific
+# comment: community in the belief that their wide dissemination will lead to
+# comment: greater understanding and new scientific insights. To ensure that GML
+# comment: receives fair credit for their work please include relevant citation
+# comment: text in publications. We encourage users to contact the data providers,
+# comment: who can provide detailed information about the measurements and
+# comment: scientific insight.  In cases where the data are central to a
+# comment: publication, coauthorship for data providers may be appropriate.
+# comment: 
+# comment: 
+# comment: Please see accompanying README file, if available, for citation text.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: H2 CCGG (Individual Flasks)
+# contact_name: Gabrielle Petron
+# contact_telephone: (720) 295-0145
+# contact_email: Gabrielle.Petron@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: Bureau of Meteorology and Geophysics [BMG]
+# collaborator_comment: DHL account#: 540377880
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: bkt
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2025-09-30 16:59:44
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at https://gml.noaa.gov/aftp/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+BKT 2009  9   548.11
+BKT 2009 10   552.37
+BKT 2009 11   552.61
+BKT 2009 12   545.75
+BKT 2010  1   543.70
+BKT 2010  2   547.99
+BKT 2010  3   551.89
+BKT 2010  4   551.22
+BKT 2010  5   546.01
+BKT 2010  6   540.06
+BKT 2010  7   538.95
+BKT 2010  8   540.14
+BKT 2010  9   543.70
+BKT 2010 10   548.73
+BKT 2010 11   549.14
+BKT 2010 12   545.96
+BKT 2011  1   547.16
+BKT 2011  2   552.54
+BKT 2013  2   555.39
+BKT 2013  3   564.14
+BKT 2013  5   553.80
+BKT 2013  6   558.90
+BKT 2013  7   571.64
+BKT 2013  8   569.73
+BKT 2013  9   559.01
+BKT 2013 10   553.76
+BKT 2013 11   551.43
+BKT 2013 12   549.58
+BKT 2014  1   555.88
+BKT 2014  2   562.08
+BKT 2014  5   553.69
+BKT 2014  6   549.07
+BKT 2014  7   548.34
+BKT 2014  8   550.78
+BKT 2014  9   555.51
+BKT 2014 10   558.47
+BKT 2014 11   551.87
+BKT 2015  1   553.53
+BKT 2015  2   560.68
+BKT 2015  3   560.60
+BKT 2015  4   557.51
+BKT 2015  5   552.41
+BKT 2015  6   546.76
+BKT 2015  7   548.73
+BKT 2015  8   558.47
+BKT 2015 11   570.10
+BKT 2015 12   555.91
+BKT 2016  1   555.29
+BKT 2016  2   560.38
+BKT 2016  3   564.35
+BKT 2016  4   565.96
+BKT 2016  5   559.44
+BKT 2016  6   552.85
+BKT 2016  7   554.16
+BKT 2016  8   555.67
+BKT 2016  9   554.80
+BKT 2016 10   556.67
+BKT 2016 11   560.00
+BKT 2016 12   559.49
+BKT 2017  1   555.30
+BKT 2017  2   554.58
+BKT 2017  3   558.71
+BKT 2017  4   559.68
+BKT 2017  5   553.95
+BKT 2017  6   550.26
+BKT 2017  7   550.37
+BKT 2017  8   549.30
+BKT 2017  9   551.43
+BKT 2017 10   557.61
+BKT 2017 11   557.27
+BKT 2017 12   555.13
+BKT 2018  1   561.79
+BKT 2018  2   567.03
+BKT 2018  3   564.16
+BKT 2018  4   562.09
+BKT 2018  5   559.46
+BKT 2018  6   552.55
+BKT 2018  7   549.82
+BKT 2018  8   555.43
+BKT 2018  9   562.93
+BKT 2018 10   565.06
+BKT 2018 11   560.04
+BKT 2018 12   555.66
+BKT 2019  1   555.82
+BKT 2019  2   563.45
+BKT 2019  3   571.91
+BKT 2019  4   569.60
+BKT 2019  5   558.58
+BKT 2019  6   553.38
+BKT 2019  7   554.68
+BKT 2019  8   562.47
+BKT 2019  9   575.71
+BKT 2019 10   580.98
+BKT 2019 11   565.00
+BKT 2019 12   551.14
+BKT 2020  1   558.19
+BKT 2020  2   567.91
+BKT 2020  3   568.49
+BKT 2020  4   564.85
+BKT 2020  5   560.97
+BKT 2020  6   557.41
+BKT 2020  7   557.15
+BKT 2020  8   558.11
+BKT 2020  9   560.78
+BKT 2020 10   565.42
+BKT 2020 11   564.93
+BKT 2020 12   559.37
+BKT 2021  1   560.56
+BKT 2021  2   568.21
+BKT 2021  3   572.88
+BKT 2021  4   569.77
+BKT 2021  5   563.20
+BKT 2021  6   557.73
+BKT 2021  7   555.70
+BKT 2021  8   556.02
+BKT 2021  9   562.18
+BKT 2021 10   569.13
+BKT 2021 11   567.71
+BKT 2021 12   562.34
+BKT 2022  1   562.77
+BKT 2022  2   567.28
+BKT 2022  3   575.05
+BKT 2022  4   578.38
+BKT 2022  5   568.35
+BKT 2022  6   558.43
+BKT 2022  7   558.45
+BKT 2022  8   558.90
+BKT 2022  9   559.60
+BKT 2022 10   566.14
+BKT 2022 11   571.34
+BKT 2022 12   565.86
+BKT 2023  1   558.32
+BKT 2023  2   561.31
+BKT 2023  3   570.28
+BKT 2023  7   559.70
+BKT 2023  8   567.24
+BKT 2023  9   581.59
+BKT 2023 10   591.15
+BKT 2023 11   585.17
+BKT 2023 12   571.27
+BKT 2024  1   562.26
+BKT 2024  2   565.50
+BKT 2024  3   574.15
+BKT 2024  4   577.66
+BKT 2024  5   571.59
+BKT 2024  6   569.13
+BKT 2024  7   572.69
+BKT 2024  8   572.11
+BKT 2024  9   572.48
+BKT 2024 10   580.64
+BKT 2024 11   584.17
+BKT 2024 12   577.98

@@ -1,0 +1,439 @@
+# number_of_header_lines: 54
+# comment:  
+# comment:  ************ USE OF GML DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the scientific
+# comment: community in the belief that their wide dissemination will lead to
+# comment: greater understanding and new scientific insights. To ensure that GML
+# comment: receives fair credit for their work please include relevant citation
+# comment: text in publications. We encourage users to contact the data providers,
+# comment: who can provide detailed information about the measurements and
+# comment: scientific insight.  In cases where the data are central to a
+# comment: publication, coauthorship for data providers may be appropriate.
+# comment: 
+# comment: 
+# comment: Please see accompanying README file, if available, for citation text.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CO CCGG (Individual Flasks)
+# contact_name: Gabrielle Petron
+# contact_telephone: (720) 295-0145
+# contact_email: Gabrielle.Petron@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: NOAA Global Monitoring Laboratory [NOAA GML]
+# collaborator_url: https://gml.noaa.gov
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: kum
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_analysis-constraints: flag:..%
+# description_creation-time: 2026-08-11 13:17:07
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at https://gml.noaa.gov/aftp/data/trace_gases/.
+# comment:
+# data_fields: site year month value
+KUM 1993 12   122.75
+KUM 1994  1   131.04
+KUM 1994  2   135.97
+KUM 1994  3   138.80
+KUM 1994  4   140.16
+KUM 1994  5   127.25
+KUM 1994  6    99.55
+KUM 1994  7    81.45
+KUM 1994  8    79.62
+KUM 1994  9    88.32
+KUM 1994 10   104.92
+KUM 1994 11   123.21
+KUM 1994 12   131.73
+KUM 1995  1   131.76
+KUM 1995  2   129.73
+KUM 1995  3   133.99
+KUM 1995  4   139.34
+KUM 1995  5   126.66
+KUM 1995  6    98.06
+KUM 1995  7    78.91
+KUM 1995  8    75.62
+KUM 1995  9    81.02
+KUM 1995 10    91.87
+KUM 1995 11   102.25
+KUM 1995 12   107.90
+KUM 1996  1   117.17
+KUM 1996  2   131.55
+KUM 1996  3   132.61
+KUM 1996  4   116.69
+KUM 1996  5   105.46
+KUM 1996  6    98.73
+KUM 1996  7    84.38
+KUM 1996  8    76.48
+KUM 1996  9    80.31
+KUM 1996 10    91.42
+KUM 1996 11   104.70
+KUM 1996 12   107.88
+KUM 1997  1   106.77
+KUM 1997  2   117.11
+KUM 1997  3   127.03
+KUM 1997  4   124.99
+KUM 1997  5   116.15
+KUM 1997  6    96.95
+KUM 1997  7    78.45
+KUM 1997  8    73.59
+KUM 1997  9    79.34
+KUM 1997 10    94.96
+KUM 1997 11   113.65
+KUM 1997 12   129.17
+KUM 1998  1   141.76
+KUM 1998  2   155.22
+KUM 1998  3   164.24
+KUM 1998  4   161.48
+KUM 1998  5   146.86
+KUM 1998  6   113.95
+KUM 1998  7    86.83
+KUM 1998  8    95.29
+KUM 1998  9   120.08
+KUM 1998 10   131.84
+KUM 1998 11   132.03
+KUM 1998 12   130.02
+KUM 1999  1   132.96
+KUM 1999  2   138.10
+KUM 1999  3   138.86
+KUM 1999  4   133.49
+KUM 1999  5   119.49
+KUM 1999  6    96.28
+KUM 1999  7    78.83
+KUM 1999  8    74.28
+KUM 1999  9    79.13
+KUM 1999 10    86.51
+KUM 1999 11    97.18
+KUM 1999 12   105.28
+KUM 2000  1   109.44
+KUM 2000  2   118.79
+KUM 2000  3   130.99
+KUM 2000  4   131.34
+KUM 2000  5   110.69
+KUM 2000  6    86.53
+KUM 2000  7    73.02
+KUM 2000  8    68.64
+KUM 2000  9    73.28
+KUM 2000 10    84.47
+KUM 2000 11    89.83
+KUM 2000 12    92.17
+KUM 2001  1   109.15
+KUM 2001  2   130.06
+KUM 2001  3   133.03
+KUM 2001  4   123.78
+KUM 2001  5   109.00
+KUM 2001  6    89.37
+KUM 2001  7    71.77
+KUM 2001  8    69.04
+KUM 2001  9    76.06
+KUM 2001 10    87.96
+KUM 2001 11    98.12
+KUM 2001 12   103.14
+KUM 2002  1   111.43
+KUM 2002  2   123.56
+KUM 2002  3   129.66
+KUM 2002  4   124.25
+KUM 2002  5   111.34
+KUM 2002  6    92.65
+KUM 2002  7    75.23
+KUM 2002  8    82.03
+KUM 2002  9    99.75
+KUM 2002 10   103.54
+KUM 2002 11   106.72
+KUM 2002 12   120.58
+KUM 2003  1   130.46
+KUM 2003  2   132.68
+KUM 2003  3   135.27
+KUM 2003  4   137.47
+KUM 2003  5   131.41
+KUM 2003  6   115.65
+KUM 2003  7   109.91
+KUM 2003  8   115.37
+KUM 2003  9   115.68
+KUM 2003 10   117.63
+KUM 2003 11   124.77
+KUM 2003 12   123.15
+KUM 2004  1   119.13
+KUM 2004  2   124.52
+KUM 2004  3   132.88
+KUM 2004  4   134.22
+KUM 2004  5   121.35
+KUM 2004  6   100.52
+KUM 2004  7    91.04
+KUM 2004  8    96.08
+KUM 2004  9   106.11
+KUM 2004 10   116.43
+KUM 2004 11   122.19
+KUM 2004 12   114.33
+KUM 2005  1   120.35
+KUM 2005  2   147.98
+KUM 2005  3   156.81
+KUM 2005  4   140.09
+KUM 2005  5   112.92
+KUM 2005  6    89.13
+KUM 2005  7    74.90
+KUM 2005  8    71.46
+KUM 2005  9    78.77
+KUM 2005 10    89.49
+KUM 2005 11    98.06
+KUM 2005 12   108.28
+KUM 2006  1   122.84
+KUM 2006  2   127.48
+KUM 2006  3   124.72
+KUM 2006  4   126.82
+KUM 2006  5   121.10
+KUM 2006  6    94.05
+KUM 2006  7    73.23
+KUM 2006  8    74.42
+KUM 2006  9    79.17
+KUM 2006 10    84.60
+KUM 2006 11    97.77
+KUM 2006 12   111.57
+KUM 2007  1   121.86
+KUM 2007  2   126.31
+KUM 2007  3   129.05
+KUM 2007  4   129.73
+KUM 2007  5   115.83
+KUM 2007  6    92.00
+KUM 2007  7    72.21
+KUM 2007  8    69.78
+KUM 2007  9    79.70
+KUM 2007 10    89.48
+KUM 2007 11    92.88
+KUM 2007 12   105.24
+KUM 2008  1   120.81
+KUM 2008  2   118.52
+KUM 2008  3   109.87
+KUM 2008  4   113.35
+KUM 2008  5   113.67
+KUM 2008  6    96.56
+KUM 2008  7    77.41
+KUM 2008  8    72.34
+KUM 2008  9    76.16
+KUM 2008 10    80.56
+KUM 2008 11    83.98
+KUM 2008 12    92.16
+KUM 2009  1   107.09
+KUM 2009  2   118.52
+KUM 2009  3   117.96
+KUM 2009  4   110.17
+KUM 2009  5   102.90
+KUM 2009  6    89.86
+KUM 2009  7    76.85
+KUM 2009  8    74.48
+KUM 2009  9    81.38
+KUM 2009 10    91.61
+KUM 2009 11    97.40
+KUM 2009 12    96.52
+KUM 2010  1   106.20
+KUM 2010  2   126.18
+KUM 2010  3   136.65
+KUM 2010  4   130.22
+KUM 2010  5   113.82
+KUM 2010  6    91.08
+KUM 2010  7    79.23
+KUM 2010  8    82.51
+KUM 2010  9    88.03
+KUM 2010 10    90.11
+KUM 2010 11    92.41
+KUM 2010 12    95.79
+KUM 2011  1   103.29
+KUM 2011  2   110.14
+KUM 2011  3   111.96
+KUM 2011  4   112.81
+KUM 2011  5   108.69
+KUM 2011  6    93.63
+KUM 2011  7    79.56
+KUM 2011  8    74.90
+KUM 2011  9    77.89
+KUM 2011 10    87.04
+KUM 2011 11    97.77
+KUM 2011 12    99.59
+KUM 2012  1   103.47
+KUM 2012  2   120.08
+KUM 2012  3   130.85
+KUM 2012  4   123.86
+KUM 2012  5   105.72
+KUM 2012  6    89.40
+KUM 2012  7    80.76
+KUM 2012  8    82.39
+KUM 2012  9    84.25
+KUM 2012 10    85.17
+KUM 2012 11    90.52
+KUM 2012 12   100.77
+KUM 2013  1   113.24
+KUM 2013  2   121.49
+KUM 2013  3   120.95
+KUM 2013  4   111.64
+KUM 2013  5   100.31
+KUM 2013  6    88.13
+KUM 2013  7    74.80
+KUM 2013  8    72.52
+KUM 2013  9    80.32
+KUM 2013 10    86.43
+KUM 2013 11    89.69
+KUM 2013 12    92.73
+KUM 2014  1    94.20
+KUM 2014  2    97.58
+KUM 2014  3   107.15
+KUM 2014  4   114.35
+KUM 2014  5   106.36
+KUM 2014  6    84.54
+KUM 2014  7    71.19
+KUM 2014  8    72.00
+KUM 2014  9    77.03
+KUM 2014 10    88.99
+KUM 2014 11   103.08
+KUM 2014 12   109.78
+KUM 2015  1   114.17
+KUM 2015  2   120.20
+KUM 2015  3   120.78
+KUM 2015  4   117.45
+KUM 2015  5   109.33
+KUM 2015  6    89.62
+KUM 2015  7    74.58
+KUM 2015  8    74.89
+KUM 2015  9    81.70
+KUM 2015 10    92.30
+KUM 2015 11   104.77
+KUM 2015 12   108.87
+KUM 2016  1   112.71
+KUM 2016  2   123.52
+KUM 2016  3   126.64
+KUM 2016  4   120.32
+KUM 2016  5   109.08
+KUM 2016  6    89.92
+KUM 2016  7    73.49
+KUM 2016  8    70.38
+KUM 2016  9    78.30
+KUM 2016 10    86.06
+KUM 2016 11    90.23
+KUM 2016 12    96.46
+KUM 2017  1   109.87
+KUM 2017  2   117.48
+KUM 2017  3   111.67
+KUM 2017  4   101.33
+KUM 2017  5    90.56
+KUM 2017  6    79.45
+KUM 2017  7    72.68
+KUM 2017  8    73.65
+KUM 2017  9    78.44
+KUM 2017 10    88.20
+KUM 2017 11   100.05
+KUM 2017 12   103.55
+KUM 2018  1   102.05
+KUM 2018  2   105.33
+KUM 2018  3   108.44
+KUM 2018  4   106.18
+KUM 2018  5    97.68
+KUM 2018  6    82.78
+KUM 2018  7    70.01
+KUM 2018  8    71.86
+KUM 2018  9    77.34
+KUM 2018 10    81.98
+KUM 2018 11    89.54
+KUM 2018 12    94.88
+KUM 2019  1   102.21
+KUM 2019  2   117.23
+KUM 2019  3   125.92
+KUM 2019  4   115.77
+KUM 2019  5    98.16
+KUM 2019  6    82.88
+KUM 2019  7    72.14
+KUM 2019  8    76.08
+KUM 2019  9    83.36
+KUM 2019 10    83.69
+KUM 2019 11    86.33
+KUM 2019 12    95.01
+KUM 2020  1   104.67
+KUM 2020  2   112.12
+KUM 2020  3   112.55
+KUM 2020  4   105.08
+KUM 2020  5    96.71
+KUM 2020  6    83.03
+KUM 2020  7    69.83
+KUM 2020  8    70.65
+KUM 2020  9    80.34
+KUM 2020 10    87.93
+KUM 2020 11    94.41
+KUM 2020 12    99.98
+KUM 2021  1   105.48
+KUM 2021  2   111.06
+KUM 2021  3   111.67
+KUM 2021  4   105.49
+KUM 2021  5    93.06
+KUM 2021  6    75.98
+KUM 2021  7    71.23
+KUM 2021  8    87.05
+KUM 2021  9    99.67
+KUM 2021 10    94.62
+KUM 2021 11    89.12
+KUM 2021 12    92.38
+KUM 2022  1    95.78
+KUM 2022  2    97.90
+KUM 2022  3   100.81
+KUM 2022  4   102.07
+KUM 2022  5    94.65
+KUM 2022  6    79.39
+KUM 2022  7    69.43
+KUM 2022  8    67.84
+KUM 2022  9    70.76
+KUM 2022 10    76.96
+KUM 2022 11    82.78
+KUM 2022 12    84.12
+KUM 2023  1    90.29
+KUM 2023  2   101.44
+KUM 2023  3   104.76
+KUM 2023  4   102.57
+KUM 2023  5    97.55
+KUM 2023  6    86.37
+KUM 2023  7    77.38
+KUM 2023  8    79.62
+KUM 2023  9    86.30
+KUM 2023 10    92.99
+KUM 2023 11    97.94
+KUM 2023 12   101.78
+KUM 2024  1   110.13
+KUM 2024  2   118.14
+KUM 2024  3   116.31
+KUM 2024  4   107.53
+KUM 2024  5    96.79
+KUM 2024  6    84.42
+KUM 2024  7    75.85
+KUM 2024  8    79.93
+KUM 2024  9    88.08
+KUM 2024 10    91.09
+KUM 2024 11    91.04
+KUM 2024 12    93.04
+KUM 2025  1    98.89
+KUM 2025  2   104.70
+KUM 2025  3   105.86
+KUM 2025  4   100.39
+KUM 2025  5    92.27
+KUM 2025  6    80.96
+KUM 2025  7    70.53
+KUM 2025  8    68.89
+KUM 2025  9    76.24
+KUM 2025 10    83.32
+KUM 2025 11    84.43
+KUM 2025 12    85.79

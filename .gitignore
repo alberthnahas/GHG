@@ -1,0 +1,33 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+
+# Rebuilt analysis caches and generated deliverables
+outputs/
+figures/
+Jambi/figures/
+Jambi/*.pdf
+Jambi/*.pptx
+
+# External material and local links outside this repository
+ggmt-2026/
+HOTSPOT
+
+# LaTeX and office temporary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+~$*
+
+# Editor and operating-system metadata
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
