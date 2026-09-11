@@ -1,0 +1,8 @@
+{
+  "source_url": "https://www.ncei.noaa.gov/pub/data/igra/data/data-por/IDM00096163-data.txt.zip",
+  "sha256": "3a911f4600215fdd75e7c7581a57159a67b63a36a85ae84636542ca2d88c3da4",
+  "bytes": 20734196,
+  "retrieved_at_utc": "2026-09-06T06:11:56.932872+00:00",
+  "provider": "NOAA NCEI",
+  "dataset": "IGRA 2.2"
+}

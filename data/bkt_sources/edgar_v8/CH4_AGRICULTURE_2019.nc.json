@@ -1,0 +1,18 @@
+{
+  "source_url": "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/v80_FT2022_GHG/monthly/CH4/AGRICULTURE_NEW/AGRICULTURE_flx_nc.zip",
+  "filename": "CH4_AGRICULTURE_2019.nc",
+  "bytes": 311096414,
+  "sha256": "20af9e268e39915bd81d40669a1798086fbc11ed1d5c2592204640a9a27d8c74",
+  "retrieved_at_utc": "2026-09-05T06:17:22.178019+00:00",
+  "provider": "European Commission JRC / IEA-EDGAR",
+  "dataset": "EDGAR v8.0 monthly fluxes",
+  "gas": "CH4",
+  "sector": "AGRICULTURE",
+  "year": 2019,
+  "archive_member": "v8.0_FT2022_GHG_CH4_2019_bkl_AGRICULTURE_flx.nc",
+  "archive_crc32": 1617414825,
+  "archive_etag": "\"4237551e-621c43f55e826\"",
+  "archive_bytes": 1110922526,
+  "transferred_bytes": 48305408,
+  "documentation": "https://edgar.jrc.ec.europa.eu/dataset_ghg80"
+}

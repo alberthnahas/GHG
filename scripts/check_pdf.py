@@ -26,6 +26,7 @@ Usage:  check_pdf.py [pdf ...]      (defaults to both documents)
 Exit:   0 if every page is clean, 1 otherwise.
 """
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -55,7 +56,7 @@ def looks_like_heading(text):
     finding number, a station code, or a phrase.
     """
     t = text.strip()
-    if t.startswith(("Appendix ", "Summary of findings", "Part ")):
+    if t.startswith(("Appendix ", "Appendix.", "Summary of findings", "Part ")):
         return True
     head = t.split(" ", 1)[0]
     return (head.rstrip(".").replace(".", "").isdigit()
@@ -68,12 +69,29 @@ def check(path):
     bad = []
     for i, page in enumerate(doc):
         blocks = [b[4].strip() for b in page.get_text("blocks") if b[4].strip()]
-        # block 0 is the running head; the marker, when present, is block 1
-        if len(blocks) < 4 or MARKER not in blocks[1]:
-            continue
-        # blocks[2] is the repeated header row; blocks[3] must be data
-        if looks_like_heading(blocks[3]):
-            bad.append((i + 1, blocks[3].splitlines()[0][:60]))
+        # Search every block: PDF text grouping and position are not fixed.
+        # A repeated header followed by a caption (not just a section heading)
+        # is also an orphan. That exact case escaped the previous page-22 gate.
+        for index, block in enumerate(blocks):
+            if MARKER not in block:
+                continue
+            tail = blocks[index + 1:]
+            if len(tail) >= 2 and (looks_like_heading(tail[1]) or
+                                  re.match(r"^Table\s+\d+[.:]", tail[1])):
+                bad.append((i + 1, tail[1].splitlines()[0][:60]))
+        body=[b for b in page.get_text("dict")["blocks"] if b.get("type")==0
+              and b["bbox"][1]>45 and b["bbox"][3]<page.rect.height-35]
+        if body:
+            last=max(body,key=lambda b:b["bbox"][3])
+            spans=[s for line in last["lines"] for s in line["spans"]]
+            text=" ".join(s["text"] for s in spans).strip()
+            # Section-size numbered or appendix headings cannot end a body page alone.
+            # Ignore smaller reference-list entries and the running footer.
+            # Contents blocks mix a bold parent with regular child entries.
+            appendix_bold=text.startswith(("Appendix ","Appendix.")) and all("Bold" in s["font"] for s in spans if s["text"].strip())
+            toc_page_number=spans[-1]["text"].strip().isdigit() and spans[-1]["bbox"][0]>page.rect.width*.8
+            if not toc_page_number and looks_like_heading(text) and (max(s["size"] for s in spans)>=11.5 or appendix_bold):
+                bad.append((i+1,"Heading without following body content: "+text[:60]))
     return doc.page_count, bad
 
 
@@ -90,9 +108,8 @@ def main():
         if bad:
             problems += len(bad)
             for pg, what in bad:
-                print(f"  p{pg}: continued-table header with no rows under it, "
-                      f"above '{what}'")
-            print(f"  FAIL {a}  ({n} pages, {len(bad)} stray table headers)")
+                print(f"  p{pg}: orphaned heading or table content: '{what}'")
+            print(f"  FAIL {a}  ({n} pages, {len(bad)} layout issues)")
         else:
             print(f"  ok   {a}  ({n} pages, 0 stray table headers)")
     print(f"\n{problems} PDF layout issues")

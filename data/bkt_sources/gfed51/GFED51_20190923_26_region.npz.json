@@ -1,0 +1,32 @@
+{
+  "dataset": "GFED5.1 daily regional subset",
+  "source": "https://www.globalfiredata.org/data.html",
+  "remote_path": "GFED5/GFED5.1/Daily/GFED5.1_daily_2019-09.nc",
+  "remote_bytes": 82458981,
+  "source_attributes": {
+    "title": "GFED5.1 daily 2019-09",
+    "subtitle": "Global Fire Emissions Database (GFED) extension version 5.1 daily trace gas and aerosol emissions for 2019-09",
+    "creation_date": "2025-08-30 22:47:10 UTC",
+    "license": "Data in this file is licensed under a Creative Commons Attribution- 4.0 International (CC BY 4.0) License (https://creativecommons.org/licenses/)",
+    "region": "Global",
+    "spatial_resolution": "0.25x0.25 degree",
+    "temporal_resolution": "Day",
+    "institution": "Wageningen Univerity & Research, and University of California, Irvine",
+    "contact": "Guido van der Werf (guido.vanderwerf@wur.nl), Yang Chen (yang.chen@uci.edu)",
+    "_NCProperties": "version=2,netcdf=4.8.1,hdf5=1.12.1"
+  },
+  "units": {
+    "CO2": "g CO2 per day",
+    "CH4": "g CH4 per day",
+    "CO": "g CO per day"
+  },
+  "time_units": "hours since 1800-01-01",
+  "source_day_indices": [
+    22,
+    23,
+    24,
+    25
+  ],
+  "sha256": "097053aeccc7a5dfa3f4b121ccd9992f0c5a861206b01aaa754063b7206343a3",
+  "retrieved_at_utc": "2026-09-05T06:26:11.942545+00:00"
+}

@@ -489,6 +489,43 @@ ID = {
         "Gambar SQ2  Tiga pengukuran yang menetapkan jadwal",
     "Figure SQ3  The adopted frame and the flush constraint that sets its purge windows":
         "Gambar SQ3  Kerangka yang dipakai dan kendala pembilasan yang menetapkan jendelanya",
+    # ---- BKT domain and prior-budget extension ----
+    "Domain expansion changes completeness and sensitivity across the full ensemble":
+        "Perluasan domain mengubah kelengkapan dan sensitivitas seluruh ansambel",
+    "The original transport screen selected a different concentration sample":
+        "Penyaringan transpor awal memilih sampel konsentrasi yang berbeda",
+    "Surface and endpoint-background terms must converge together":
+        "Komponen permukaan dan latar di titik akhir harus konvergen bersama",
+    "Particle retention": "Retensi partikel",
+    "(a) Particle retention": "(a) Retensi partikel",
+    "(b) Matched surface sensitivity": "(b) Sensitivitas permukaan berpasangan",
+    "(a) CO₂": "(a) CO₂", "(b) CH₄": "(b) CH₄", "(c) CO": "(c) CO",
+    "Receptor hour (chronological order)": "Jam reseptor (urutan kronologis)",
+    "Active particles (%)": "Partikel aktif (%)",
+    "Original": "Awal", "Widened": "Diperluas",
+    "Matched surface sensitivity": "Sensitivitas permukaan berpasangan",
+    "Original-domain sensitivity": "Sensitivitas domain awal",
+    "Widened-domain sensitivity": "Sensitivitas domain diperluas",
+    "Originally retained": "Dipertahankan semula", "Recovered": "Dipulihkan",
+    "Retained": "Dipertahankan",
+    "CO₂ (ppm)": "CO₂ (ppm)", "CH₄ (ppb)": "CH₄ (ppb)",
+    "Surface contribution": "Kontribusi permukaan",
+    "Endpoint background": "Latar di titik akhir",
+    "Combined prior budget": "Neraca prior gabungan",
+    "Surface contribution (ppb)": "Kontribusi permukaan (ppb)",
+    "Endpoint background (ppb)": "Latar di titik akhir (ppb)",
+    "Combined prior budget (ppb)": "Neraca prior gabungan (ppb)",
+    "Backward duration (hours)": "Durasi mundur (jam)",
+    "At BKT, 52 fixed observation hours include 27 originally retained and 25 recovered.\nGrouping uses modeled particle retention; it does not alter the observations.":
+        "Di BKT, 52 jam pengamatan tetap mencakup 27 jam yang dipertahankan semula dan 25 jam yang dipulihkan.\nPengelompokan memakai retensi partikel model; pengamatan tidak diubah.",
+    "Five pre-declared BKT receptors; 72, 120 and 168 hours backward. Thin lines are cases; thick lines are medians.":
+        "Lima reseptor BKT yang ditetapkan sebelumnya; 72, 120, dan 168 jam mundur. Garis tipis menunjukkan kasus; garis tebal menunjukkan median.",
+    "Data: NOAA GFS-driven HYSPLIT-STILT forward simulations; actual-emitted-particle normalization.":
+        "Data: simulasi maju HYSPLIT-STILT berpenggerak NOAA GFS; normalisasi terhadap partikel yang benar-benar dilepas.",
+    "Data: quality-controlled hourly BKT observations. Grouping uses modeled particle retention, not gas concentration.":
+        "Data: pengamatan BKT per jam yang dikendalikan mutunya. Pengelompokan memakai retensi partikel model, bukan konsentrasi gas.",
+    "Data: HYSPLIT-STILT, EDGAR v8.0, GFED5.1 and CarbonTracker-CH4 2025; prior-budget sensitivity only.":
+        "Data: HYSPLIT-STILT, EDGAR v8.0, GFED5.1, dan CarbonTracker-CH4 2025; hanya sensitivitas neraca prior.",
 }
 
 TABLES = {"en": {}, "id": ID}
@@ -604,6 +641,8 @@ PHRASES = {
         (r"\bimplied by\b", "disiratkan oleh"),
         (r"\bforcing accrual\b", "akumulasi pemaksaan"),
         (r"\bmo\b", "bln"),
+        (r"BKT, 9 September–6 October 2019; original screen retained (\d+) of 52 hours\.\nwide runs retain at least 95% in (\d+) of 52\.",
+         r"BKT, 9 September–6 Oktober 2019; penyaringan awal mempertahankan \1 dari 52 jam.\nrun domain luas mempertahankan sedikitnya 95% pada \2 dari 52 jam."),
     ],
 }
 
@@ -720,7 +759,7 @@ if __name__ == "__main__":
         for m in ("a3_figures", "a8_extra_figs", "a10_process_figs",
                   "a12_flask_figs", "a16_carbon_figs", "a18_extra2_figs",
                   "a23_roni_figs", "a25_extra3_figs", "a27_extra4_figs", "a29_extra5_figs",
-                  "a32_nek_figs", "a37_sequencer_figs"):
+                  "a32_nek_figs", "a37_sequencer_figs", "a72_domain_budget_figures"):
             try:
                 mod = importlib.import_module(m)
                 import ghg_common as G

@@ -1,0 +1,8 @@
+{
+  "source_url": "https://www.ncei.noaa.gov/pub/data/igra/data/igra2-data-format.txt",
+  "sha256": "dfd7b4d2dd18a255477455a7caefd12cb21c30549a1e70cbc3a51db9f41c1dfe",
+  "bytes": 13740,
+  "retrieved_at_utc": "2026-09-06T06:00:47.511853+00:00",
+  "provider": "NOAA NCEI",
+  "dataset": "IGRA 2.2"
+}

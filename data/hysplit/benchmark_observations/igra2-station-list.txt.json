@@ -1,0 +1,8 @@
+{
+  "source_url": "https://www.ncei.noaa.gov/pub/data/igra/igra2-station-list.txt",
+  "sha256": "82f26f0cda419e17e5ecc01ea22fd7f0170973b39ad9c7f57a5cd2be3bf8351c",
+  "bytes": 260950,
+  "retrieved_at_utc": "2026-09-06T06:00:48.939454+00:00",
+  "provider": "NOAA NCEI",
+  "dataset": "IGRA 2.2"
+}

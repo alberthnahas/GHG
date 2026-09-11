@@ -1,0 +1,9 @@
+{
+  "dataset": "GFED5.1 daily",
+  "source": "https://www.globalfiredata.org/data.html",
+  "remote_path": "GFED5/GFED5.1/Ecosystem/GFED5.1_ecosystem_2019.nc",
+  "bytes": 16256849,
+  "sha256": "81e124ff69b7feae0fadac879875de4983a746094d842966ef8026fdd0af6b11",
+  "retrieved_at_utc": "2026-09-05T08:54:16.173564+00:00",
+  "host_verification": "SSH host keys pinned on first access; strict subsequent matching"
+}

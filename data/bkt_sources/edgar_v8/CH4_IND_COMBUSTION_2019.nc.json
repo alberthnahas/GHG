@@ -1,0 +1,18 @@
+{
+  "source_url": "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/v80_FT2022_GHG/monthly/CH4/IND_COMBUSTION/IND_COMBUSTION_flx_nc.zip",
+  "filename": "CH4_IND_COMBUSTION_2019.nc",
+  "bytes": 311096424,
+  "sha256": "0eaa558b5f8fba375c4e5785df854435d01473935797e8244e8df18770663399",
+  "retrieved_at_utc": "2026-09-05T06:27:46.454245+00:00",
+  "provider": "European Commission JRC / IEA-EDGAR",
+  "dataset": "EDGAR v8.0 monthly fluxes",
+  "gas": "CH4",
+  "sector": "IND_COMBUSTION",
+  "year": 2019,
+  "archive_member": "v8.0_FT2022_GHG_CH4_2019_IND_COMBUSTION_flx.nc",
+  "archive_crc32": 3336176355,
+  "archive_etag": "\"13f2695c-6155b57ee4e93\"",
+  "archive_bytes": 334653788,
+  "transferred_bytes": 14757624,
+  "documentation": "https://edgar.jrc.ec.europa.eu/dataset_ghg80"
+}

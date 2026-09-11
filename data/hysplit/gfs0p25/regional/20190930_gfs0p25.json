@@ -1,0 +1,35 @@
+{
+  "dataset": "NOAA GFS 0.25-degree pseudo-analysis, 3-hourly, hybrid levels, ARL format",
+  "provider": "NOAA ARL READY regional extraction",
+  "source_url": "https://www.ready.noaa.gov/extractout/user/extract_2228.zip",
+  "source_archive": "20190930_gfs0p25",
+  "extraction": {
+    "proc": "2228",
+    "selections": {
+      "metdata": "GFS0P25",
+      "mdatacfg": "GFS0P25",
+      "metdir1": "/pub/archives/gfs0p25/",
+      "metfil1": "20190930_gfs0p25",
+      "xtype": "1",
+      "proc": "2228",
+      "latL": "-20",
+      "lonL": "75",
+      "latR": "20",
+      "lonR": "130"
+    },
+    "source_archive": "20190930_gfs0p25"
+  },
+  "requested_bounds": [
+    75,
+    -20,
+    130,
+    20
+  ],
+  "archive_sha256": "f888cd7f44e9a20cb5b6e87d1648d64aeabbe0dce4a8c3813d281aa5ec5ecb7f",
+  "archive_member": "extract_2228.bin",
+  "archive_crc32": 3822076433,
+  "filename": "20190930_gfs0p25",
+  "bytes": 99481752,
+  "sha256": "e1c761f41a122930e8607fe3cb949f6b7b8b175bf3d7c9a5611ab713be219fcc",
+  "retrieved_at_utc": "2026-09-05T10:17:03.777966+00:00"
+}

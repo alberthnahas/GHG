@@ -1,4 +1,4 @@
-"""Markdown -> LaTeX -> PDF for the two report documents.
+"""Markdown -> LaTeX -> PDF for the project report documents.
 
 There is no pandoc here, and pandoc's generic output would need heavy tuning
 anyway: these documents are dominated by wide multi-panel figures and by tables
@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -60,6 +61,19 @@ DOCS = {
         subtitle="Formulas, the reasoning behind each choice, and four headline "
                  "results worked end to end",
         toc=True),
+    "BKT_HYSPLIT_STILT_Footprint_Report": dict(
+        title="Greenhouse-gas source influence and methane emission inversion at Bukit Kototabang",
+        running_title="BKT source influence and methane inversion",
+        prefer_vector=True,
+        figure_placement="htbp",
+        flow_barriers=True,
+        measured_tables=True,
+        title_meta="Bukit Kototabang, Indonesia | September–October 2019",
+        title_no_hyphenation=True,
+        subtitle="GFS-driven source influence and an observation-constrained regional methane experiment",
+        title_footer=("September–October 2019 research experiments. Conditional source estimates, "
+                      "not independently verified regional emission totals."),
+        toc=True),
 }
 
 # --------------------------------------------------------------------------
@@ -73,6 +87,8 @@ UNI = {
     "\u2081": r"\textsubscript{1}",
     "\u00b9": r"\textsuperscript{1}", "\u00b2": r"\textsuperscript{2}",
     "\u00b3": r"\textsuperscript{3}", "\u2074": r"\textsuperscript{4}",
+    "\u2070": r"\textsuperscript{0}", "\u2076": r"\textsuperscript{6}",
+    "\u2077": r"\textsuperscript{7}",
     "\u207b": r"\textsuperscript{\textminus}",
     "\u2014": "---", "\u2013": "--", "\u2026": r"\ldots{}",
     # text glyphs, not math ones, wherever the main font has them: a math \pm
@@ -182,6 +198,9 @@ def _verb(s, breakable=True):
         out = out.replace(u, rep)
     if breakable:
         out = re.sub(r"(\\_|[./-])", r"\1\\allowbreak{}", out)
+        # Integrity hashes must remain exact but may wrap without a hyphen.
+        if re.fullmatch(r"[0-9a-fA-F]{32,}", s):
+            out = r"\allowbreak{}".join(s[i:i+8] for i in range(0, len(s), 8))
     return out
 
 
@@ -193,7 +212,7 @@ def _strip_markup(cell):
     return t.strip()
 
 
-def table(rows):
+def table(rows, caption=None):
     """Lay out one markdown table as a longtable that always fits the text block.
 
     Every column is given an explicit fraction of ``\textwidth``, so the total
@@ -286,6 +305,24 @@ def table(rows):
     setup = [r"\begingroup" + size,
              r"\setlength{\tabcolsep}{" + f"{tabcolsep_pt:.0f}" + r"pt}",
              r"\renewcommand{\arraystretch}{1.25}"]
+
+    if caption is not None:
+        # These report tables fit a page. Measure the actual caption + tabular
+        # as one box instead of estimating wrapped row heights or letting a
+        # longtable output routine move a caption behind a continuation head.
+        # Fail explicitly if a future table needs a genuine multipage design.
+        return [r"\par\FloatBarrier",
+                r"\begin{lrbox}{\reporttablebox}\begin{minipage}{\textwidth}",
+                inline(caption) + r"\par\vspace{6pt}"] + setup + [
+                r"\noindent\begin{tabular}{" + "".join(spec) + "}",
+                r"\toprule", row(head, bold=True), r"\midrule"] + [
+                row(r) for r in body] + [
+                r"\bottomrule\end{tabular}\par\endgroup",
+                r"\end{minipage}\end{lrbox}",
+                r"\ifdim\dimexpr\ht\reporttablebox+\dp\reporttablebox\relax>\textheight",
+                r"\PackageError{report-layout}{Table exceeds one page}{Use a captioned multipage table.}\fi",
+                r"\Needspace{\dimexpr\ht\reporttablebox+\dp\reporttablebox+12pt\relax}",
+                r"\noindent\usebox{\reporttablebox}\par\vspace{8pt}", ""]
 
     # Height in points, not in body baselineskips: a table row is set at the
     # table's own font size with \arraystretch applied, so reserving body lines
@@ -385,6 +422,8 @@ def convert(md, cfg):
         m = IMG_RE.match(ln.strip())
         if m:
             path = (ROOT / m.group(2)).resolve()
+            if cfg.get("prefer_vector") and path.suffix==".png" and path.with_suffix(".pdf").exists():
+                path=path.with_suffix(".pdf")
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
@@ -395,7 +434,7 @@ def convert(md, cfg):
             body = re.sub(r"^\*\*(Figure\s+\d+\.)\*\*\s*", "", cap)
             num = re.match(r"^\*\*(Figure\s+\d+)\.\*\*", cap)
             label = (num.group(1) if num else "Figure").replace(" ", "")
-            out += [r"\begin{figure}[tbp]", r"\centering",
+            out += [r"\begin{figure}["+cfg.get("figure_placement","tbp")+"]", r"\centering",
                     r"\includegraphics[width=\textwidth]{" + str(path) + "}",
                     r"\caption*{\small\textbf{" + (num.group(1) + "." if num else "") + "} "
                     + inline(body) + "}",
@@ -460,7 +499,7 @@ def convert(md, cfg):
                 # empty prints its *continuation* head - "(table continued)"
                 # above the section title, with no rows under it.  That is what
                 # happened to the Summary of findings on page 7.
-                follows_table, follows_bare_table, k, seen = False, False, i + 1, 0
+                follows_table, follows_bare_table, follows_heading, k, seen = False, False, False, i + 1, 0
                 while k < len(lines) and seen < 1:
                     t = lines[k].strip()
                     k += 1
@@ -474,6 +513,7 @@ def convert(md, cfg):
                         follows_bare_table = True
                         break
                     if t.startswith("#"):
+                        follows_heading = True
                         break
                 skip_title_needspace = follows_table
                 # 28, not 14: the reservation has to cover the heading, its
@@ -481,9 +521,16 @@ def convert(md, cfg):
                 # At 14 the heading fits and the head does not, and longtable
                 # then opens the next page with a "(table continued)" head
                 # sitting above the section title with no rows under it.
-                reserve = "19" if follows_table else ("28" if follows_bare_table else "5")
-                out += [r"\FloatBarrier" if lvl == 2 else "",
-                        r"\needspace{" + reserve + r"\baselineskip}",
+                reserve = "28" if (follows_table or follows_bare_table) else "5"
+                if cfg.get("flow_barriers") and (follows_table or follows_bare_table):reserve="16"
+                previous=next((line.strip() for line in reversed(lines[:i]) if line.strip()),"")
+                parent=HEAD_RE.match(previous)
+                adjacent_child=bool(cfg.get("flow_barriers") and parent and len(parent.group(1))<lvl)
+                if cfg.get("flow_barriers") and follows_heading:reserve="10"
+                # A second reservation/barrier between adjacent headings can
+                # strand the parent. Reserve the pair before the parent only.
+                out += [r"\FloatBarrier" if not adjacent_child and (lvl == 2 or cfg.get("flow_barriers")) else "",
+                        r"\needspace{" + reserve + r"\baselineskip}" if not adjacent_child else "",
                         "\\" + cmd + "{" + heading(txt) + "}",
                         r"\nopagebreak[4]", ""]
                 # The running head takes the section title, and these titles
@@ -510,12 +557,14 @@ def convert(md, cfg):
         # ---- lists --------------------------------------------------------
         if re.match(r"^\s*(\d+\.|[-*])\s+", ln):
             ordered = bool(re.match(r"^\s*\d+\.", ln))
+            first_number=int(re.match(r"^\s*(\d+)\.",ln).group(1)) if ordered else None
             items = []
             while i < len(lines) and re.match(r"^\s*(\d+\.|[-*])\s+", lines[i]):
                 items.append(re.sub(r"^\s*(\d+\.|[-*])\s+", "", lines[i]))
                 i += 1
             env = "enumerate" if ordered else "itemize"
-            out += [f"\\begin{{{env}}}[leftmargin=1.4em,itemsep=2pt,topsep=4pt]"]
+            start=f",start={first_number}" if ordered and first_number!=1 else ""
+            out += [f"\\begin{{{env}}}[leftmargin=1.4em,itemsep=2pt,topsep=4pt{start}]"]
             out += [r"\item " + inline(x) for x in items]
             out += [f"\\end{{{env}}}", ""]
             continue
@@ -533,12 +582,28 @@ def convert(md, cfg):
                 para.append(lines[i])
                 i += 1
             text = " ".join(para)
+            if cfg.get("measured_tables") and re.match(r"^\*\*Table\s", text):
+                j = i
+                while j < len(lines) and not lines[j].strip():
+                    j += 1
+                if j < len(lines) and lines[j].startswith("|"):
+                    rows = []
+                    while j < len(lines) and lines[j].startswith("|"):
+                        rows.append(split_row(lines[j]))
+                        j += 1
+                    if len(rows) > 1 and set("-: ") >= set("".join(rows[1])):
+                        rows = [rows[0]] + rows[2:]
+                    out += table(rows, caption=text)
+                    i = j
+                    skip_title_needspace = False
+                    continue
             # A "Table N --- ..." line titles the table that follows it, so keep
             # it with at least the header and the first rows.
             if re.match(r"^\*\*Table\s", text) and not skip_title_needspace:
                 # enough for the title plus a header and several rows, so the
                 # title never ends up alone at the foot of a page
-                out.append(r"\needspace{14\baselineskip}")
+                if cfg.get("flow_barriers"):out.append(r"\FloatBarrier")
+                out.append(r"\needspace{12\baselineskip}" if cfg.get("flow_barriers") else r"\needspace{14\baselineskip}")
             skip_title_needspace = False
             out += [inline(text), ""]
             continue
@@ -574,6 +639,7 @@ PREAMBLE = r"""\documentclass[11pt,a4paper]{article}
 
 \usepackage{graphicx}
 \usepackage{longtable,array,booktabs}
+\newsavebox{\reporttablebox}
 \usepackage{caption}
 \usepackage{enumitem}
 \usepackage{microtype}
@@ -672,8 +738,7 @@ TITLEPAGE = r"""
 {\sffamily\small\color{muted} DOCMETA\par}
 \vfill
 {\sffamily\footnotesize\color{muted}
-Generated from \texttt{DOCSRC} by \texttt{scripts/a14\_latex.py}.\par
-Figures are reproducible in English and Bahasa Indonesia; see Appendix~A.\par}
+DOCFOOT\par}
 \end{titlepage}
 """
 
@@ -689,19 +754,34 @@ def build_tex(stem, cfg):
             break
     if not meta:
         meta = "Companion to the analysis report."
+    meta=cfg.get("title_meta",meta)
     body = convert(md, cfg)
 
+    default_footer = (r"Generated from \texttt{" + stem.replace("_", r"\_")
+                      + r".md} by \texttt{scripts/a14\_latex.py}.\par "
+                      r"Figures are reproducible in English and Bahasa Indonesia; see Appendix~A.")
     title_tex = (TITLEPAGE
                  .replace("DOCTITLE", esc(cfg["title"]) if "\\" not in cfg["title"] else cfg["title"])
                  .replace("DOCSUB", cfg["subtitle"])
                  .replace("DOCMETA", esc(meta))
-                 .replace("DOCSRC", stem.replace("_", r"\_") + ".md"))
+                 .replace("DOCFOOT", cfg.get("title_footer", default_footer)))
+    if cfg.get("title_no_hyphenation"):
+        title_tex=title_tex.replace(r"\sffamily\LARGE\bfseries",r"\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000\sffamily\LARGE\bfseries")
 
     tg = Path.home() / ".TinyTeX/texmf-dist/fonts/opentype/public/tex-gyre/"
     tgm = Path.home() / ".TinyTeX/texmf-dist/fonts/opentype/public/tex-gyre-math/"
-    doc = [PREAMBLE.replace("\\begin{document}", "")
-           .replace("TGPATH", str(tg) + "/").replace("TGMATH", str(tgm) + "/"),
-           r"\newcommand{\RUNTITLE}{" + esc(cfg["title"]) + "}",
+    preamble = PREAMBLE.replace("\\begin{document}", "")
+    if tg.is_dir() and tgm.is_dir():
+        preamble = preamble.replace("TGPATH", str(tg) + "/").replace("TGMATH", str(tgm) + "/")
+    else:
+        # Tectonic resolves the same TeX Gyre faces from its managed bundle.
+        preamble = (preamble.replace("Path = TGPATH, ", "")
+                    .replace("Path = TGPATH,", "")
+                    .replace("[Path = TGMATH]", ""))
+    doc = [preamble,
+           r"\newcommand{\RUNTITLE}{" + esc(cfg.get("running_title", cfg["title"])) + "}",
+           (r"\hypersetup{pdftitle={" + esc(cfg["title"]) + "},pdfauthor={" +
+            esc(cfg.get("pdf_author", "")) + "}}"),
            r"\begin{document}",
            title_tex]
     if cfg.get("toc"):
@@ -714,10 +794,27 @@ def build_tex(stem, cfg):
 
 def compile_pdf(texfile):
     env = dict(os.environ, PATH=f"{TEXBIN}:{os.environ['PATH']}")
-    for _ in range(3):                       # toc + longtable widths need passes
+    xelatex = TEXBIN / "xelatex"
+    xelatex = str(xelatex) if xelatex.is_file() else shutil.which("xelatex", path=env["PATH"])
+    if xelatex:
+        commands = [[xelatex, "-interaction=nonstopmode", "-halt-on-error",
+                     "-file-line-error", texfile.name]] * 3
+    else:
+        candidates = [
+            os.environ.get("TECTONIC"),
+            shutil.which("tectonic"),
+            str(ROOT.parent / ".venv" / "bin" / "tectonic"),
+        ]
+        tectonic = next((value for value in candidates if value and Path(value).is_file()), None)
+        if tectonic is None:
+            return False, "Neither XeLaTeX nor Tectonic is available"
+        env.setdefault("XDG_CACHE_HOME", str(Path(tempfile.gettempdir()) / "ghg-tectonic-cache"))
+        # Tectonic performs the required cross-reference reruns internally.
+        commands = [[tectonic, "-X", "compile", texfile.name,
+                     "--keep-logs", "--keep-intermediates"]]
+    for command in commands:
         r = subprocess.run(
-            ["xelatex", "-interaction=nonstopmode", "-halt-on-error",
-             "-file-line-error", texfile.name],
+            command,
             cwd=texfile.parent, env=env, capture_output=True, text=True)
         if r.returncode != 0:
             log = (texfile.parent / (texfile.stem + ".log"))
@@ -737,6 +834,7 @@ def main():
     tex_only = "--tex-only" in sys.argv
     stems = args or list(DOCS)
     BUILD.mkdir(parents=True, exist_ok=True)
+    failed = False
 
     for stem in stems:
         stem = Path(stem).stem
@@ -757,6 +855,9 @@ def main():
             print(f"  -> {dest.relative_to(ROOT)}  ({dest.stat().st_size/1e6:.2f} MB)")
         else:
             print(f"  COMPILATION FAILED for {stem}:\n{err}")
+            failed = True
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
