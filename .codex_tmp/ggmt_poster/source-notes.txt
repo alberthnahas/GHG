@@ -1,0 +1,14 @@
+Five-site map source and method
+
+Indonesia basemap overlay: Indonesia 38-province GeoJSON from the shared HDD2 cartographic assets. CRS verified as WGS 84 geographic coordinates (EPSG:4326). Invalid source geometries were repaired with the geometry make-valid operation for rendering.
+
+Regional context outside Indonesia: Natural Earth low-resolution country polygons distributed with the local Pyogrio test data, rendered in subdued gray. CRS verified as WGS 84 geographic coordinates (EPSG:4326).
+
+Station coordinates: project station metadata already used in the poster analysis.
+Bukit Kototabang: 100.318 E, 0.202 S
+Jambi: 103.649 E, 1.611 S
+Kemayoran: 106.850 E, 6.155 S
+Bariri: 120.030 E, 1.200 S
+Sorong: 131.288 E, 0.862 S
+
+Map extent: 94 to 142 E and 12 S to 7 N. No interpolation, aggregation, or thematic classification was applied.
