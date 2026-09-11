@@ -7,7 +7,7 @@ import geopandas as gpd
 
 SOURCE = "/home/workstation-llm/.venv/lib/python3.14/site-packages/pyogrio/tests/fixtures/naturalearth_lowres/naturalearth_lowres.shp"
 INDONESIA = "/run/media/workstation-llm/HDD2/.assets/indonesia_38prov.geojson"
-OUTPUT = "/run/media/workstation-llm/HDD2/GHG_Analysis/.codex_tmp/ggmt_poster/assets/five_site_map.png"
+OUTPUT = "/run/media/workstation-llm/HDD2/GHG_Analysis/ggmt_poster/assets/five_site_map.png"
 
 sites = [
     ("BKT", 100.318, -0.202, "Bukit Kototabang", "Remote mountain, GAW Global"),
