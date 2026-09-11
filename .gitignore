@@ -44,3 +44,8 @@ data/bkt_sources/**
 Thumbs.db
 *.swp
 *.swo
+
+# Poster build resolves its node tool through a local symlink
+ggmt_poster/node_modules
+ggmt_poster/render-*/
+ggmt_poster/lo-*/
