@@ -1,0 +1,29 @@
+{
+  "request": {
+    "variable": "hus925",
+    "frequency": "1hr",
+    "start": "2019-09-09T00:00:00Z",
+    "end": "2019-09-09T12:00:00Z",
+    "bounds": [
+      95,
+      105,
+      -5,
+      5
+    ]
+  },
+  "selected": {
+    "key": "BARRA2/output/reanalysis/AUS-11/BOM/ERA5/historical/hres/BARRA-R2/v1/1hr/hus925/v20250528/hus925_AUS-11_ERA5_historical_hres_BOM_BARRA-R2_v1_1hr_201909-201909.nc",
+    "size_bytes": 935607237,
+    "etag": "\"babb4984d05bb603660ab617eebbdcce-18\"",
+    "modified": "2026-07-20T00:13:39.000Z"
+  },
+  "subset_url": "https://thredds.nci.org.au/thredds/ncss/grid/ob53/BARRA2/output/reanalysis/AUS-11/BOM/ERA5/historical/hres/BARRA-R2/v1/1hr/hus925/v20250528/hus925_AUS-11_ERA5_historical_hres_BOM_BARRA-R2_v1_1hr_201909-201909.nc?var=hus925&west=95&east=105&south=-5&north=5&horizStride=1&accept=netcdf4&time_start=2019-09-09T00%3A00%3A00Z&time_end=2019-09-09T12%3A00%3A00Z&timeStride=1",
+  "retrieved_utc": "2026-09-06T03:32:02.220830+00:00",
+  "elapsed_seconds": 13.257499549014028,
+  "bytes": 296194,
+  "sha256": "db625713ab5c05752614485d9657f267ad31c4148114e6909e4988274dd78212",
+  "coverage": [
+    "2019-09-09 00:00:00",
+    "2019-09-09 12:00:00"
+  ]
+}

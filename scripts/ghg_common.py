@@ -76,7 +76,8 @@ def clean(df, sp):
 
 def _load_raw(code):
     f = ROOT / f"grk_hourly_{code.lower()}.json"
-    df = pd.DataFrame(json.load(open(f)))
+    with f.open(encoding="utf-8") as handle:
+        df = pd.DataFrame(json.load(handle))
     df["station"] = code
     return df
 

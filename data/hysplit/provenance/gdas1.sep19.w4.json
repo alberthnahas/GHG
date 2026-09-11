@@ -1,0 +1,10 @@
+{
+  "dataset": "NCEP GDAS one-degree analysis in HYSPLIT ARL format",
+  "provider": "NOAA Air Resources Laboratory",
+  "source_url": "https://noaa-oar-arl-hysplit-pds.s3.amazonaws.com/gdas1/2019/gdas1.sep19.w4",
+  "retrieved_at_utc": "2026-09-04T13:59:22.293658+00:00",
+  "filename": "gdas1.sep19.w4",
+  "bytes": 598888640,
+  "sha256": "319a1acd675e3ab5564d04d9071776787441b275c58f7a8cb68c0f31295eb073",
+  "temporal_convention": "UTC"
+}

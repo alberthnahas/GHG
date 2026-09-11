@@ -17,6 +17,19 @@ Jambi/*.pptx
 ggmt-2026/
 HOTSPOT
 
+# Downloaded HYSPLIT meteorology is large; retain only small provenance records.
+data/hysplit/met/*
+!data/hysplit/met/.gitkeep
+
+# Acquired GFS and source data are reproducible downloads; retain small manifests.
+data/hysplit/gfs0p25/*
+!data/hysplit/gfs0p25/regional/
+data/hysplit/gfs0p25/regional/*
+!data/hysplit/gfs0p25/**/*.json
+data/bkt_sources/**
+!data/bkt_sources/**/
+!data/bkt_sources/**/*.json
+
 # LaTeX and office temporary files
 *.aux
 *.log

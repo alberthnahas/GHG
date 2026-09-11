@@ -1,0 +1,16 @@
+{
+  "proc": "2214",
+  "selections": {
+    "metdata": "GFS0P25",
+    "mdatacfg": "GFS0P25",
+    "metdir1": "/pub/archives/gfs0p25/",
+    "metfil1": "20190929_gfs0p25",
+    "xtype": "1",
+    "proc": "2214",
+    "latL": "-20",
+    "lonL": "75",
+    "latR": "20",
+    "lonR": "130"
+  },
+  "source_archive": "20190929_gfs0p25"
+}

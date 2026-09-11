@@ -1,0 +1,9 @@
+{
+  "dataset": "GFED5.1 daily",
+  "source": "https://www.globalfiredata.org/data.html",
+  "remote_path": "GFED5/Ancillary/Emission_factors/GFED5_emission_factors.txt",
+  "bytes": 4222,
+  "sha256": "876f4ca46a24e5d86b35be2588c6e7dad8cc40a0bf5b61b876f5f94d0d598630",
+  "retrieved_at_utc": "2026-09-05T08:56:17.922862+00:00",
+  "host_verification": "SSH host keys pinned on first access; strict subsequent matching"
+}

@@ -32,6 +32,13 @@ Bahasa Indonesia. Everything is generated from the raw files by `scripts/`.
 
 ## The rules that matter most
 
+For maps of Indonesia, always use the established shared GeoJSON asset:
+`../.assets/indonesia_38prov.geojson` (provinces), or
+`../.assets/indonesia_kabkota_38prov.geojson` when municipality detail is needed.
+Do not substitute Natural Earth geometry for Indonesia. Record the selected
+asset checksum and any in-memory validity repair; do not modify the original
+shared assets. Natural Earth may supply neighboring-country context.
+
 1. **Markdown is canonical.** Never edit anything in `outputs/` — PDFs, HTML,
    `.tex`, `.pptx` are all build products.
 2. **Never read `grk_hourly_*.json` directly.** Load via

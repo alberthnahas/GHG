@@ -1,0 +1,7 @@
+{
+  "source_url": "https://geos-chem.s3.amazonaws.com/HEMCO/CH4/v2026-02/CAMS_Termites/CAMS-GLOB-TERM_v1.1_methane_2000.nc",
+  "filename": "CAMS-GLOB-TERM_v1.1_methane_2000.nc",
+  "bytes": 1422137,
+  "sha256": "c32a4fe797d59f4eb4b67c7516eb399005e7b7da71c923cedae4d1b24ceb18ea",
+  "retrieved_at_utc": "2026-09-05T08:51:50.817868+00:00"
+}

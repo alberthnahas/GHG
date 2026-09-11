@@ -53,6 +53,7 @@ gate "figure translations complete" i18n_gate
 # ---------------------------------------------------------------- gate 3 ----
 # Both PDFs compile with no overfull boxes.  Slow (~1 min).
 latex_gate() {
+    "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_pdf_layout tests.test_bkt_methane_inverse tests.test_bkt_inversion_operator || return 1
     python3 scripts/a14_latex.py >/dev/null || return 1
     local n
     n="$(grep -c Overfull outputs/latex/*.log | awk -F: '{s+=$2} END {print s+0}')"
@@ -62,8 +63,21 @@ latex_gate() {
     # printed with no rows under it, which is valid LaTeX and only visible in the
     # geometry of the finished page.  That one is measured on the rendering.
     local out
-    out="$(python3 scripts/check_pdf.py 2>&1)" || { echo "$out"; return 1; }
+    out="$("${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py 2>&1)" || { echo "$out"; return 1; }
     echo "   0 stray table headers"
+    if [[ -f outputs/hysplit/gfs/analysis/report_values.json ]]; then
+        "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py outputs/BKT_HYSPLIT_STILT_Footprint_Report.pdf >/dev/null || return 1
+        "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_gfs_report.py >/dev/null || return 1
+        echo "   GFS source-influence and methane-inversion report checks passed"
+        if [[ -f outputs/hysplit/domain_budget_extension/tables/full_receptor_budget.csv ]]; then
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_bkt_domain_budget_extension >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_domain_budget_extension.py >/dev/null || return 1
+            echo "   domain-correction and prior-budget extension checks passed"
+        fi
+    elif [[ -f outputs/hysplit/refinement/analysis/metrics.json ]]; then
+        python3 scripts/validate_bkt_footprint_report.py --refinement >/dev/null || return 1
+        echo "   revised BKT report and independent numerical checks passed"
+    fi
 }
 [[ $FAST -eq 1 ]] || gate "PDFs compile clean and lay out correctly" latex_gate
 
@@ -79,7 +93,7 @@ slides_gate() {
         # capture first, then match: piping into `grep -q` under `pipefail`
         # makes grep close the pipe early and SIGPIPE the checker, which the
         # shell then reports as a failed pipeline even when the gate passed.
-        out="$(python3 scripts/check_slides.py "$deck" 2>&1)"
+        out="$("${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_slides.py "$deck" 2>&1)"
         if [[ "$out" == *"0 layout issues"* ]]; then
             echo "   ok   $deck  ($(grep -o '[0-9]* slides' <<<"$out" | head -1))"
         else

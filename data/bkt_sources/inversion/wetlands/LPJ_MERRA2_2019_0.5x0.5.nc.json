@@ -1,0 +1,7 @@
+{
+  "source_url": "https://geos-chem.s3.amazonaws.com/HEMCO/CH4/v2025-09/LPJ_MERRA2/LPJ_MERRA2_2019_0.5x0.5.nc",
+  "filename": "LPJ_MERRA2_2019_0.5x0.5.nc",
+  "bytes": 3071325,
+  "sha256": "2be2fd083e0c2050e9a610d398307ef22ea193aef7d86ebe2db4eb9c5d6f0256",
+  "retrieved_at_utc": "2026-09-05T08:50:03.518832+00:00"
+}
