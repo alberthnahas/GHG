@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { Presentation, PresentationFile } from "@oai/artifact-tool";
 
 const ROOT = "/run/media/workstation-llm/HDD2/GHG_Analysis";
-const TMP = `${ROOT}/.codex_tmp/ggmt_poster`;
+const TMP = `${ROOT}/ggmt_poster`;
 const OUT = `${ROOT}/GGMT_2026_A0_GHG_Monitoring_Poster_v10.pptx`;
 const INVERSION_FIGURE = `${ROOT}/outputs/poster/poster_inversion_original.png`;
 
