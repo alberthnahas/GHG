@@ -16,7 +16,7 @@ LABELS={"AGRICULTURE":"Agriculture","BUILDINGS":"Buildings","FUEL_EXPLOITATION":
         "POWER_INDUSTRY":"Power industry","TRANSPORT":"Transport","WASTE":"Waste"}
 
 
-def build_report():
+def build_report(write=True):
     obs=pd.read_csv(TABLES/"observation_context_summary.csv").set_index("species")
     transport=pd.read_csv(TABLES/"transport_summary.csv").set_index("run")
     comp=pd.read_csv(TABLES/"driver_comparison.csv").iloc[0]
@@ -147,7 +147,8 @@ def build_report():
 
 if __name__=="__main__":
     text,tokens=build_report()
-    (ROOT/"BKT_HYSPLIT_STILT_Footprint_Report.md").write_text(text)
+    if write:
+        (ROOT/"BKT_HYSPLIT_STILT_Footprint_Report.md").write_text(text)
     (OUT/"report_values.json").write_text(json.dumps(tokens,indent=2)+"\n")
     scripts=["a37_bkt_footprint.py","a38_bkt_footprint_report.py","a39_bkt_refinement.py",
              "a41_bkt_gfs.py","a42_bkt_sources.py","a43_bkt_source_analysis.py",

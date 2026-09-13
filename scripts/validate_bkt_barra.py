@@ -48,7 +48,10 @@ def validate():
     from a55_bkt_barra_report import build_barra_sections
     section=build_barra_sections()["BARRA_APPENDIX"]
     check("{{" not in section,"All appendix numbers resolved")
-    check(section in (ROOT/"BKT_HYSPLIT_STILT_Footprint_Report.md").read_text(),"Audited appendix integrated without divergence")
+    import re
+    strip=lambda text:re.sub(r"\b(Figure|Table)s? \d+","\\1 N",text)  # the companion renumbers figures and tables by order
+    body=strip(section.split("\n",1)[1])
+    check(body in strip((ROOT/"BKT_Transport_Technical_Companion.md").read_text()),"Audited appendix integrated in the transport companion without divergence")
     result={"status":"passed","checks":len(checks),"meteorology_conversion_ready":False,
             "scope":"Audit integrity and numerical consistency only; transport comparison not performed",
             "reason":"Above-surface missing fields require an explicitly validated reconstruction or additional source data"}

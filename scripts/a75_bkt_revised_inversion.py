@@ -30,17 +30,29 @@ import xarray as xr
 from pyproj import Geod
 from scipy.stats import norm
 
+from functools import lru_cache
+from scipy.interpolate import RegularGridInterpolator
+
 import a37_bkt_footprint as model
 import a49_bkt_methane_inversion as inv
 import a71_domain_budget_extension as ext
 import a74_bkt_simulation_revision as rev
+import a76_bkt_era5_driver as era
 from a43_bkt_source_analysis import save_nc
+from bkt_arl import ARLReader
 from bkt_methane_inverse import InverseProblem, chain_diagnostics, correlated_error
 
 ROOT = model.ROOT
 OUT = ROOT / "outputs/hysplit/revision/inversion"
 TABLES = OUT / "tables"
 ORIGINAL = ROOT / "outputs/hysplit/inversion"
+DRIVERS = {
+    # run root, met file for a UTC day, output tree
+    "gfs": dict(runs=rev.RUNS, met=lambda day: rev.WIDE_MET / f"{day:%Y%m%d}_gfs0p25", out=ROOT / "outputs/hysplit/revision/inversion"),
+    "era5": dict(runs=era.RUNS, met=era.arl_path, out=ROOT / "outputs/hysplit/era5/inversion"),
+}
+DRIVER = "gfs"
+GROUP = "ensemble"
 COMPONENTS = inv.COMPONENTS
 NEAR_COMPONENTS = ["anthro_within50", "anthro_50_500", "anthro_far", "wetlands", "fire"]
 
@@ -63,10 +75,46 @@ def component_maps(field: xr.DataArray, monthly: xr.Dataset, fire: xr.Dataset) -
 
 
 def member_dirs(stamp: pd.Timestamp) -> list[Path]:
-    return [rev.run_dir(f"ensemble_s{seed}", stamp) for seed in rev.SEEDS]
+    return [DRIVERS[DRIVER]["runs"] / f"{GROUP}_s{seed}" / f"bkt_{stamp:%Y%m%dT%H%MZ}" for seed in rev.SEEDS]
 
 
-def operator(allow_partial: bool = False) -> None:
+@lru_cache(maxsize=64)
+def reader(path: str) -> ARLReader:
+    return ARLReader(Path(path))
+
+
+def endpoint_background(active: pd.DataFrame, stamp: pd.Timestamp, met_path: Path, height_shift: float = 0.) -> dict[str, float]:
+    """Equal-weight CarbonTracker-CH4 at active endpoints; terrain from the driver's own ARL file."""
+    arl = reader(str(met_path.resolve()))
+    terrain = arl.field(stamp, "SHGT", 0)
+    ground = RegularGridInterpolator((arl.lat, arl.lon), terrain)(active[["latitude", "longitude"]].to_numpy())
+    height = active.height.to_numpy(float) + ground + height_shift
+    path = ROOT / "data/bkt_sources/inversion/carbontracker" / f"CTCH4_2025.molefrac_glb3x2_{stamp:%Y-%m-%d}.nc"
+    provenance = path.with_suffix(path.suffix + ".json")
+    if not provenance.exists() or model.sha256_file(path) != json.loads(provenance.read_text())["sha256"]:
+        raise ValueError(f"Unverified CarbonTracker boundary: {path}")
+    with xr.open_dataset(path) as data:
+        if data.ch4.attrs.get("units") != "nanomole mole-1" or data.gph.attrs.get("units") != "meters":
+            raise ValueError("CarbonTracker units differ from expected CH4/height convention")
+        sample = data.sel(time=stamp)[["ch4", "gph"]].interp(
+            latitude=xr.DataArray(active.latitude.to_numpy(), dims="particle"),
+            longitude=xr.DataArray(active.longitude.to_numpy(), dims="particle")).load()
+    bounds = sample.gph.transpose("particle", "boundary").values
+    centers = (bounds[:, :-1] + bounds[:, 1:]) / 2
+    values = sample.ch4.transpose("particle", "level").values
+    if not np.isfinite(bounds).all() or not np.isfinite(values).all() or (np.diff(bounds, axis=1) <= 0).any():
+        raise ValueError("Invalid CarbonTracker vertical support")
+    methane = np.asarray([np.interp(z, h, c) for z, h, c in zip(height, centers, values)])
+    return dict(background_ppb=float(methane.mean()), endpoint_background_sd_ppb=float(methane.std()),
+                endpoint_below_lowest_midlevel_percent=float(100 * (height < centers[:, 0]).mean()))
+
+
+def native_surface(met_path: Path, stamp: pd.Timestamp) -> dict[str, float]:
+    arl = reader(str(met_path.resolve()))
+    return {name: arl.point(stamp, name, 0, -.202, 100.318, "nearest") for name in ("PBLH", "SHGT", "U10M", "V10M", "T02M")}
+
+
+def operator(allow_partial: bool = False, limit: int = 0) -> None:
     TABLES.mkdir(parents=True, exist_ok=True)
     for name, source in (("monthly_prior_fluxes.nc", ext.INPUTS / "wide_monthly_flux.nc"),
                          ("daily_fire_prior_fluxes.nc", ext.INPUTS / "wide_daily_fire_flux.nc")):
@@ -78,6 +126,19 @@ def operator(allow_partial: bool = False) -> None:
     selection = pd.read_csv(ORIGINAL / "receptor_selection.csv", parse_dates=["time_utc"])
     selection.to_csv(OUT / "receptor_selection.csv", index=False)
     wanted = sorted(selection.loc[selection.retained, "time_utc"])
+    if limit:
+        wanted = wanted[:limit]
+    # The footprint grid may be a subset of the wide flux grid (ERA5 uses 40 x 60 degrees).
+    probe = next((d for stamp in wanted for d in member_dirs(stamp) if (d / "footprint.nc").exists()), None)
+    if probe is None:
+        raise FileNotFoundError("No completed runs for this driver and group")
+    with xr.open_dataset(probe / "footprint.nc") as ds:
+        glat, glon = ds.lat.values, ds.lon.values
+    monthly = monthly.sel(lat=glat, lon=glon, method="nearest"); fire = fire.sel(lat=glat, lon=glon, method="nearest")
+    if not np.allclose(monthly.lat.values, glat, atol=1e-6) or not np.allclose(monthly.lon.values, glon, atol=1e-6):
+        raise ValueError("Footprint grid is not a subset of the flux grid")
+    monthly = monthly.assign_coords(lat=glat, lon=glon); fire = fire.assign_coords(lat=glat, lon=glon)
+    monthly.to_netcdf(OUT / "monthly_prior_fluxes.nc"); fire.to_netcdf(OUT / "daily_fire_prior_fluxes.nc")
     lat, lon = np.meshgrid(monthly.lat.values, monthly.lon.values, indexing="ij")
     _, _, distance = Geod(ellps="WGS84").inv(np.full(lon.shape, 100.318), np.full(lat.shape, -.202), lon, lat)
     distance /= 1000
@@ -102,9 +163,10 @@ def operator(allow_partial: bool = False) -> None:
             fields.append(field)
             active = ext.active_endpoints(directory, meta, actual)
             end = stamp - pd.Timedelta(hours=meta["configuration"]["hours_back"])
-            background = ext.endpoint_background(active, end, rev.WIDE_MET / f"{end:%Y%m%d}_gfs0p25")
-            up = ext.endpoint_background(active.assign(height=active.height + 500), end, rev.WIDE_MET / f"{end:%Y%m%d}_gfs0p25")
-            down = ext.endpoint_background(active.assign(height=active.height - 500), end, rev.WIDE_MET / f"{end:%Y%m%d}_gfs0p25")
+            met_end = DRIVERS[DRIVER]["met"](end)
+            background = endpoint_background(active, end, met_end)
+            up = endpoint_background(active, end, met_end, 500.)
+            down = endpoint_background(active, end, met_end, -500.)
             maps = component_maps(field, monthly, fire)
             anthro = sum(v for k, v in maps.items() if k.startswith("CH4_"))
             member_rows.append(dict(seed=meta["configuration"]["seed"], emitted=actual, active=len(active),
@@ -130,7 +192,7 @@ def operator(allow_partial: bool = False) -> None:
         lag = (stamp - pd.DatetimeIndex(mean.time.values)).total_seconds() / 3600
         for h, w in zip(lag, hourly):
             lag_rows.append(dict(group="ensemble", time_utc=stamp, lag_hours=h, sensitivity=w))
-        native = ext.sample_native_surface(rev.WIDE_MET / f"{stamp:%Y%m%d}_gfs0p25", stamp)
+        native = native_surface(DRIVERS[DRIVER]["met"](stamp), stamp)
         numeric = [c for c in members.columns if c.endswith("_ppb") or c == "sensitivity"]
         row = dict(group="ensemble", time_utc=stamp, members=len(members), **members[numeric].mean().to_dict())
         row.update({f"{c}_seed_sd": float(members[c].std(ddof=1)) for c in
@@ -273,10 +335,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("stage", choices=["operator", "fit", "robustness", "synthetic", "budget", "variants", "comparison", "all"])
     parser.add_argument("--allow-partial", action="store_true")
-    parser.add_argument("--out", type=Path, default=OUT)
+    parser.add_argument("--driver", default="gfs", choices=list(DRIVERS))
+    parser.add_argument("--group", default="ensemble", help="run-group prefix (ensemble, or anchor for a test)")
+    parser.add_argument("--limit", type=int, default=0, help="process only the first N receptors (testing)")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
-    redirect(args.out)
-    stages = {"operator": lambda: operator(args.allow_partial), "fit": inv.run, "robustness": inv.robustness,
+    DRIVER, GROUP = args.driver, args.group
+    redirect(args.out or DRIVERS[DRIVER]["out"])
+    stages = {"operator": lambda: operator(args.allow_partial, args.limit), "fit": inv.run, "robustness": inv.robustness,
               "synthetic": inv.synthetic, "budget": inv.emission_budget, "variants": variants, "comparison": comparison}
     for name in (["operator", "fit", "robustness", "synthetic", "budget", "variants", "comparison"] if args.stage == "all" else [args.stage]):
         print(f"== {name}", flush=True); stages[name]()

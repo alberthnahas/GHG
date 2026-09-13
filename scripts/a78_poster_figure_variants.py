@@ -58,6 +58,33 @@ def build(name: str, headline: str, highlight: str) -> Path:
     return path
 
 
+def build_panel(name: str, rows: tuple[int, int], headline: str, highlight: str, stem: str) -> Path:
+    """Poster variant of one panel of a multi-panel report figure (pixel rows given)."""
+    image = Image.open(ROOT / "figures" / f"{name}.png").convert("RGB")
+    body = np.asarray(image.crop((0, rows[0], image.width, rows[1])))
+    width_in = 7.2
+    body_in = width_in * body.shape[0] / body.shape[1]
+    head_in = 0.62
+    fig = plt.figure(figsize=(width_in, body_in + head_in))
+    fig.text(.04, 1 - .06 / (body_in + head_in), headline, fontsize=9.5, weight="bold", va="top")
+    fig.text(.04, 1 - .30 / (body_in + head_in), highlight, fontsize=6.8, color="#52616A", va="top")
+    ax = fig.add_axes([0, 0, 1, body_in / (body_in + head_in)])
+    ax.imshow(body, interpolation="lanczos"); ax.axis("off")
+    OUT.mkdir(parents=True, exist_ok=True)
+    path = OUT / f"poster_{stem}.png"
+    fig.savefig(path, dpi=DPI, facecolor="white"); plt.close(fig)
+    return path
+
+
+PANELS = {
+    # f1 panel (a): the availability chart only; panels (b) and (c) are archive time-base diagnostics.
+    "f1_coverage": ("f1_coverage_timebase", (42, 400), "Hourly data availability by station and species",
+        "Bukit Kototabang CO since 2001 and CO₂ and CH₄ since 2009; Bariri and Sorong from 2021; Jambi and Kemayoran from late 2023."),
+}
+
+
 if __name__ == "__main__":
     for name, (headline, highlight) in VARIANTS.items():
         print(build(name, headline, highlight))
+    for stem, (name, rows, headline, highlight) in PANELS.items():
+        print(build_panel(name, rows, headline, highlight, stem))

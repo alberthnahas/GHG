@@ -18,11 +18,12 @@ class Era5DriverTests(unittest.TestCase):
     def test_requests_and_jobs(self) -> None:
         dataset, body = E.request("pl", E.needed_days()[0])
         self.assertEqual(dataset, "reanalysis-era5-pressure-levels")
-        self.assertEqual(len(body["pressure_level"]), 27); self.assertEqual(len(body["time"]), 24)
-        self.assertEqual(body["area"], [30, 50, -40, 160])
+        self.assertEqual(len(body["pressure_level"]), 16); self.assertEqual(len(body["time"]), 24)
+        self.assertEqual(body["area"], [20, 70, -25, 140])
         self.assertEqual(len(E.jobs()), 15)
         self.assertTrue(all(cfg.meteorology_label == E.LABEL for _, _, cfg in E.jobs()))
-        self.assertIn("plev = 1000, 975", E.CFG % (27, ", ".join(map(str, E.LEVELS))))
+        self.assertTrue(all((cfg.grid_span_lat_deg, cfg.grid_span_lon_deg) == (40, 60) for _, _, cfg in E.jobs()))
+        self.assertIn("plev = 1000, 950", E.CFG % (16, ", ".join(map(str, E.LEVELS))))
 
     @unittest.skipUnless(WIDE.exists(), "wide GFS archive not present")
     def test_arl_header_parser_on_gfs(self) -> None:

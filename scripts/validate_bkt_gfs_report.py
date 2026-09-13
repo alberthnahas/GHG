@@ -13,7 +13,6 @@ from PIL import Image
 from a43_bkt_source_analysis import OUT, TABLES, ROOT, MW, matching_flux
 from a39_bkt_refinement import read_run, MEMBERS, STAMP
 from a41_bkt_gfs import met_paths, audit_arl
-from a45_bkt_gfs_report import build_report
 from bkt_footprint_spatial import regrid_coefficients
 
 
@@ -99,26 +98,31 @@ def validate():
     check((provinces.ambiguous_boundary_enhancement>=0).all() and
           (provinces.ambiguous_boundary_enhancement<=provinces.outside_or_unassigned+1e-9).all(),
           "Ambiguous boundaries retained within unassigned influence")
-    expected,tokens=build_report()
-    markdown=(ROOT/"BKT_HYSPLIT_STILT_Footprint_Report.md").read_text()
-    check(markdown==expected,"Canonical report matches evidence and narrative template")
-    for pattern in (r"revised Figure",r"WIB.to.UTC correction",r"debugg",r"interrupted attempt",r"first implementation",r"scripts/",r"/run/media/",r"SHA.256"):
-        check(re.search(pattern,markdown,re.I) is None,f"Scientific narrative excludes {pattern}")
-    pdf=ROOT/"outputs/BKT_HYSPLIT_STILT_Footprint_Report.pdf"
-    info=subprocess.check_output(["pdfinfo",str(pdf)],text=True)
-    pages=int(re.search(r"Pages:\s+(\d+)",info)[1])
-    check("A4" in info,"PDF uses A4 pages")
-    text=subprocess.check_output(["pdftotext",str(pdf),"-"],text=True)
-    layout=subprocess.check_output(["pdftotext","-layout",str(pdf),"-"],text=True)
-    results_pages=[page for page in layout.split("\f") if re.search(r"(?m)^\s*4\. Results\s*$",page)]
-    check(len(results_pages)==1 and "Regional footprint and dependence on meteorology" in results_pages[0]
-          and "The GFS ensemble has integrated sensitivity" in results_pages[0],
-          "Results heading stays with its subsection and substantive findings")
-    for number in range(1,26):check(f"Figure {number}." in text,f"PDF figure {number}")
-    for number in range(1,21):check(f"Table {number}." in text,f"PDF table {number}")
-    check("{{" not in text and "[REPORT" not in text,"No unresolved PDF template tokens")
-    log=(ROOT/"outputs/latex/BKT_HYSPLIT_STILT_Footprint_Report.log").read_text()
-    check(not any(p in log for p in ("Overfull","Undefined control sequence","Missing character","Fatal error")),"Clean scientific PDF typesetting")
+    from a82_bkt_reports import build as build_reports, DOCS as REPORT_DOCS
+    rendered=build_reports(write=False)
+    for stem,expected in rendered.items():
+        markdown=(ROOT/f"{stem}.md").read_text()
+        check(markdown==expected,f"{stem}: canonical markdown matches evidence and narrative template")
+        for pattern in (r"revised Figure",r"WIB.to.UTC correction",r"debugg",r"interrupted attempt",r"first implementation",r"scripts/a",r"/run/media/",r"SHA.256"):
+            check(re.search(pattern,markdown,re.I) is None,f"{stem}: scientific narrative excludes {pattern}")
+        for kind in ("Figure","Table"):
+            numbers=[int(n) for n in re.findall(r"\*\*%s (\d+)\."%kind,markdown)]
+            check(numbers==list(range(1,len(numbers)+1)),f"{stem}: {kind.lower()}s numbered consecutively")
+            referenced={int(n) for n in re.findall(r"\b%s (\d+)\b"%kind,markdown)}
+            check(referenced<=set(numbers),f"{stem}: every {kind.lower()} reference has a caption")
+        pdf=ROOT/f"outputs/{stem}.pdf"
+        info=subprocess.check_output(["pdfinfo",str(pdf)],text=True)
+        check("A4" in info,f"{stem}: PDF uses A4 pages")
+        text=subprocess.check_output(["pdftotext",str(pdf),"-"],text=True)
+        for kind in ("Figure","Table"):
+            count=len(re.findall(r"\*\*%s \d+\."%kind,markdown))
+            for number in range(1,count+1):check(f"{kind} {number}." in text,f"{stem}: PDF {kind.lower()} {number}")
+        check("{{" not in text and "[REPORT" not in text,f"{stem}: no unresolved PDF template tokens")
+        log=(ROOT/f"outputs/latex/{stem}.log").read_text()
+        check(not any(p in log for p in ("Overfull","Undefined control sequence","Missing character","Fatal error")),f"{stem}: clean scientific PDF typesetting")
+    pages={stem:int(re.search(r"Pages:\s+(\d+)",subprocess.check_output(["pdfinfo",str(ROOT/f"outputs/{stem}.pdf")],text=True))[1]) for stem in REPORT_DOCS}
+    revision_figs=sorted((ROOT/"outputs/hysplit/revision/figures").glob("figure_R*.png"))
+    check(len(revision_figs)==6,"Six reproducible revision figures")
     figs=list((OUT/"figures").glob("figure_*.png"))
     check(len(figs)==12,"Twelve reproducible scientific figures")
     from a46_bkt_inversion_transport import OUT as INVERSE_OUT
@@ -129,7 +133,7 @@ def validate():
     benchmark_figs=[BENCHMARK_OUT/"figures"/(name+".png") for name in
                    ("domain_completeness","physics_sensitivity","profile_evaluation")]
     check(all(path.exists() for path in benchmark_figs),"Three reproducible general-transport figures")
-    figs+=benchmark_figs
+    figs+=benchmark_figs+revision_figs
     for path in figs:
         with Image.open(path) as im:check(im.width>=2100 and im.height>=1100,f"Publication raster size {path.stem}")
         check(path.with_suffix(".pdf").is_file(),f"Vector companion {path.stem}")
@@ -140,7 +144,7 @@ def validate():
     check(validate_barra()["status"]=="passed","BARRA feasibility audit is reproducible; not a meteorology-readiness claim")
     from validate_transport_benchmark import validate as validate_transport
     check(validate_transport()["status"]=="passed","General transport benchmark accounting and provenance pass")
-    result=dict(status="passed",checks=len(checks),pages=pages,figures=25,tables=20,
+    result=dict(status="passed",checks=len(checks),pages=pages,documents=list(REPORT_DOCS),
                 scope="Numerical consistency and artifact QA; not independent atmospheric validation")
     pd.DataFrame(checks).to_csv(TABLES/"validation_checks.csv",index=False)
     (OUT/"validation.json").write_text(json.dumps(result,indent=2)+"\n")

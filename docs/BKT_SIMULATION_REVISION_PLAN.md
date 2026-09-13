@@ -154,3 +154,68 @@ Report structure: split the single 59-page document into
 3. Transport technical companion (benchmark, domain correction, BARRA
    screen, ERA5 driver evaluation, definitions).
 Remove repeated boilerplate; lead each summary with findings, then limits.
+
+2026-09-12 21:07 WIB: campaign complete, 256/256 runs, no failures, 100 %
+retention everywhere; `summarize` written to `outputs/hysplit/revision/tables`.
+Revised inversion (`a75 all`) completed earlier the same day; tuned covariance
+(transport fraction 0.10) gives withheld RMSE 25.3 ppb versus 28.5 ppb
+background-only, multipliers 0.37 / 0.24 / 0.43 / 0.68, three of four
+intervals excluding unity (fires reach 1.00). Completion email sent.
+ERA5 fetch started automatically; CDS transfer rate at start about 66 kB/s.
+
+2026-09-13: CDS transfer from this site fell to about 5 kB/s per stream
+(route congestion; NOAA S3 and Google's ARCO-ERA5 mirror were no better,
+the latter 0.04 MB/s for a regional slice because its chunks are global).
+ERA5 request cut to 70-140 E, 25-S to 20 N and 16 pressure levels, still
+hourly; ERA5 footprint grid 40 by 60 degrees to stay inside it. The eight
+wide-area surface files already fetched were moved to
+`data/hysplit/era5/superseded_wide/`. Fetch restarted with six streams.
+Same day, later: the workstation's WiFi link runs at about 12 MB/s abroad
+against 0.3 MB/s on the LAN default route. `a76 fetch --interface wlp0s20f3`
+pins the CDS transfers to the WiFi device (SO_BINDTODEVICE, no routing
+change). Fetch restarted that way with four streams.
+
+### ERA5 flux-sign defect (13 September 2026)
+
+First ERA5 anchor runs gave 1.3 to 3.8 times the GFS surface sensitivity
+with seed noise under 2 %, largest at 13:00 WIB, unchanged when HYSPLIT used
+ERA5's own boundary-layer height instead of the Richardson diagnosis. Cause:
+ECMWF accumulated sensible and latent heat fluxes are positive downward;
+the stock `era52arl` field map only divides by 3600, so HYSPLIT received
+about -170 W m-2 at midday and treated the daytime boundary layer as stable.
+Fix: negate `sshf` and `slhf` in the converter map (`a76` CFG). The affected
+ARL files, runs and comparison tables are kept under `*_v1_flux_sign_bug`
+directories; all 15 days are reconverted and the 15 cases rerun
+(`outputs/hysplit/era5/rerun_v2.log`). The 18-day fetch in progress converts
+with the corrected map automatically.
+
+Corrected ERA5 anchor comparison (`a79`, `outputs/hysplit/era5/tables`):
+ERA5/GFS integrated sensitivity 1.17 to 1.84, cell-level spatial difference
+74 to 120 % of total, seed CV under 1.5 %; ERA5 midday PBLH at BKT 919 m vs
+GFS 1306 m. `bkt_arl.ARLReader` (generic, tested against `GFSReader` and the
+ERA5 file) and `a75 --driver era5` added; ERA5 operator verified on the four
+anchors and the GFS path reproduces the revision operator exactly. ERA5
+inversion queued behind the 156-run ensemble
+(`outputs/hysplit/era5/inversion.log`).
+
+## Reporting stage executed (13 September 2026)
+
+- `scripts/a81_bkt_revision_figures.py`: six revision figures (numerics and
+  retention, release height and afternoon window, extended forward case,
+  driver maps, inversion update, withheld evaluation).
+- `scripts/a83_bkt_forward_extension_sources.py`: EDGAR and GFED convolution
+  on the 120 h widened GFS and ERA5 forward footprints and the 1,000 m layer;
+  CO2 and CO fire are lower bounds (local GFED extracts cover those gases only
+  for 23 to 26 September on the regional box). A wide-box three-gas extraction
+  for 21 to 26 September would complete them.
+- `scripts/a82_bkt_reports.py` builds three reports from
+  `docs/BKT_Forward_Report_template.md`, `docs/BKT_Inversion_Report_template.md`
+  and `docs/BKT_Transport_Companion_template.md`, reusing the token builders of
+  a45, a51, a55, a69 and a73 and renumbering figures and tables by order of
+  appearance. Outputs: `BKT_Forward_Source_Influence_Report.md` (29 pages),
+  `BKT_Methane_Inversion_Report.md` (29 pages),
+  `BKT_Transport_Technical_Companion.md` (20 pages). The combined 59-page
+  report is archived as
+  `docs/archive/BKT_HYSPLIT_STILT_Footprint_Report_combined_20260913.md`.
+- `validate_bkt_gfs_report.py`, `validate_bkt_barra.py`, `verify_all.sh` and
+  `a14_latex.py` updated for the three documents.

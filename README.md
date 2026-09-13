@@ -38,8 +38,9 @@ its report generator would overwrite the current scientific report.
 python scripts/a39_bkt_refinement.py model --jobs 3
 python scripts/a39_bkt_refinement.py analyze
 python scripts/a40_bkt_refinement_report.py
-python scripts/a14_latex.py BKT_HYSPLIT_STILT_Footprint_Report
-python scripts/validate_bkt_footprint_report.py --refinement
+python scripts/a82_bkt_reports.py
+python scripts/a14_latex.py BKT_Forward_Source_Influence_Report BKT_Methane_Inversion_Report BKT_Transport_Technical_Companion
+python scripts/validate_bkt_gfs_report.py
 ```
 
 For the current GFS and emission-source extension, use
@@ -59,9 +60,10 @@ conditional regional emission multipliers with explicit natural-source and
 background assumptions; the global background assimilates BKT. These results
 belong in the same scientific report, not a separate inverse-model report.
 
-The earlier GDAS-only narrative template is `docs/BKT_Footprint_Report_template.md`.
-Its generator overwrites `BKT_HYSPLIT_STILT_Footprint_Report.md`; do not run it
-over the GFS report unless deliberately rebuilding that historical analysis.
+The earlier GDAS-only narrative template is `docs/BKT_Footprint_Report_template.md`
+and its generator (`a40`) writes the retired combined report name; do not run it
+unless deliberately rebuilding that historical analysis. The combined report was
+split on 13 September 2026 (see below).
 Use `ensemble_mean.nc` for scientific
 analysis and flux convolution; `display_surface.nc` is solely a reconstruction
 for visualization. Native outputs retain the model's requested-count
@@ -99,8 +101,13 @@ python3 scripts/a38_bkt_footprint_report.py \
 
 See `docs/BKT_HYSPLIT_STILT_FOOTPRINT.md` for the method and output contract,
 and `docs/BKT_HYSPLIT_STILT_FOOTPRINT_PLAN.md` for acceptance criteria. The
-canonical comprehensive report is `BKT_HYSPLIT_STILT_Footprint_Report.md`; its
-publication PDF is generated at
-`outputs/BKT_HYSPLIT_STILT_Footprint_Report.pdf`. Supporting report figures,
+canonical reports are three markdown documents built by `scripts/a82_bkt_reports.py`
+from `docs/BKT_*_template.md` and the evidence tables:
+`BKT_Forward_Source_Influence_Report.md` (the 26 September 2019 case),
+`BKT_Methane_Inversion_Report.md` (September–October 2019 inversion with the
+2026 transport revision and ERA5 comparison) and
+`BKT_Transport_Technical_Companion.md` (campaign, drivers, benchmark, domain
+correction, BARRA screen). Their PDFs are generated under `outputs/`. The former
+combined report is archived under `docs/archive/`. Supporting report figures,
 evidence tables, metrics and validation results are kept under the pilot run's
 `report/` directory.

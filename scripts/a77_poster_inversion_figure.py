@@ -29,7 +29,9 @@ SOURCES = {"original": ROOT / "outputs/hysplit/inversion", "revision": ROOT / "o
 OUT = ROOT / "outputs/poster"
 
 
-def build(source: str) -> Path:
+def build(source: str, variant: str = "base") -> Path:
+    """``variant`` = "base" uses posterior_parameters.csv / inversion_evaluation.csv;
+    a named a75 variant (for example "tuned") uses variant_parameters.csv / variant_evaluation.csv."""
     base = SOURCES[source]; tables = base / "tables"
     F.OUT = base  # map_axis writes its cartographic provenance beside the source
     apply_chart_style()
@@ -37,8 +39,21 @@ def build(source: str) -> Path:
     usable = operator[operator.transport_usable]
     with xr.open_dataset(base / "spatial_operator_base.nc") as d:
         f = d.footprint.sel(receptor=usable.time_utc.values).mean("receptor").load()
-    post = pd.read_csv(tables / "posterior_parameters.csv")
-    ev = pd.read_csv(tables / "inversion_evaluation.csv").query("split == 'heldout'").set_index("model")
+    if variant == "base":
+        post = pd.read_csv(tables / "posterior_parameters.csv")
+        ev = pd.read_csv(tables / "inversion_evaluation.csv").query("split == 'heldout'").set_index("model")
+    else:
+        vp = pd.read_csv(tables / "variant_parameters.csv")
+        post = vp[vp.case == variant].reset_index(drop=True)
+        if len(post) != 6:
+            raise ValueError(f"variant {variant} not found or not four-component")
+        ve = pd.read_csv(tables / "variant_evaluation.csv").query("split == 'heldout'").set_index("case")
+        raw = pd.read_csv(tables / "inversion_evaluation.csv").query("split == 'heldout'").set_index("model")
+        ev = pd.DataFrame({"rmse_ppb": {"inventory": raw.loc["inventory", "rmse_ppb"],
+            "background_adjusted_inventory": ve.loc[f"{variant}_inventory_adjusted", "rmse_ppb"],
+            "posterior": ve.loc[variant, "rmse_ppb"], "background_only": ve.loc[f"{variant}_background_only", "rmse_ppb"]}})
+        prior = np.exp(1.96 * np.log(2.))
+        post["prior_q025"] = 1 / prior; post["prior_q975"] = prior
     n_train = int((~usable.holdout).sum()); n_held = int(usable.holdout.sum())
 
     fig = plt.figure(figsize=(7.2, 3.2))
@@ -58,7 +73,7 @@ def build(source: str) -> Path:
         bx.plot(row["median"], i - .08, "o", color=BLUE, ms=4.5)
     bx.axvline(1, color="#555", ls="--", lw=.8); bx.set_xscale("log"); bx.invert_yaxis()
     bx.set_yticks(range(4), ["Anthropogenic\n≤500 km", "Anthropogenic\n>500 km", "Wetlands", "Non-crop fires"], fontsize=7.5)
-    bx.set_xticks([.25, .5, 1, 2, 4], ["0.25", "0.5", "1", "2", "4"]); bx.xaxis.set_minor_formatter(NullFormatter())
+    bx.set_xticks([.1, .25, .5, 1, 2, 4], ["0.1", "0.25", "0.5", "1", "2", "4"]); bx.xaxis.set_minor_formatter(NullFormatter())
     bx.tick_params(axis="x", labelsize=7.5); bx.set_xlabel("Emission multiplier (inventory = 1)", fontsize=8)
     bx.legend(loc="lower left", fontsize=6.5, ncol=2, bbox_to_anchor=(-.02, .99), frameon=False, handlelength=1.6, columnspacing=1)
     bx.set_title("(b) Prior and posterior scaling", fontsize=8, pad=17)
@@ -77,17 +92,30 @@ def build(source: str) -> Path:
         a.spines[["top", "right"]].set_visible(False)
 
     near = post.set_index("parameter").loc["anthro_near"]
-    fig.text(.04, .97, "A single station tests methane inventories but cannot yet correct them",
-             fontsize=9.5, weight="bold", va="top")
-    fig.text(.04, .905, f"GFS/HYSPLIT-STILT five-day footprints, {n_train} fitting and {n_held} withheld hours, 9 Sep to 6 Oct 2019.\n"
-             f"Anthropogenic ≤500 km multiplier {near['median']:.2f} ({near.q025:.2f} to {near.q975:.2f}); all four 95% intervals include the inventory value.",
+    names_short = ["near anthropogenic", "far anthropogenic", "wetlands", "fires"]
+    excluded = [bool(q975 < 1 or q025 > 1) for q025, q975 in zip(post.q025.iloc[:4], post.q975.iloc[:4])]
+    if all(excluded):
+        headline = "A single station constrains regional methane sources"
+        verdict = "all four 95% intervals exclude the inventory value."
+    elif sum(excluded) >= 3:
+        headline = "A single station constrains regional methane sources"
+        touching = ", ".join(f"{name} reach it at {post.q975.iloc[i]:.2f}" for i, name in enumerate(names_short) if not excluded[i])
+        verdict = f"{sum(excluded)} of four 95% intervals exclude the inventory value; {touching}."
+    else:
+        headline = "A single station tests methane inventories but cannot yet correct them"
+        verdict = f"{4 - sum(excluded)} of four 95% intervals include the inventory value."
+    covariance = ", tuned error covariance" if variant != "base" else ""
+    verdict = verdict.replace("of four 95% intervals", "of 4 intervals")
+    fig.text(.04, .97, headline, fontsize=9.5, weight="bold", va="top")
+    fig.text(.04, .905, f"GFS/HYSPLIT-STILT five-day footprints{covariance}, {n_train} fitting and {n_held} withheld hours, 9 Sep to 6 Oct 2019.\n"
+             f"Anthropogenic ≤500 km multiplier {near['median']:.2f} ({near.q025:.2f} to {near.q975:.2f}); {verdict}",
              fontsize=6.8, color="#52616A", va="top", linespacing=1.4)
     OUT.mkdir(parents=True, exist_ok=True)
-    path = OUT / f"poster_inversion_{source}.png"
+    path = OUT / f"poster_inversion_{source}{'' if variant == 'base' else '_' + variant}.png"
     fig.savefig(path, dpi=260, facecolor="white"); fig.savefig(path.with_suffix(".pdf"), facecolor="white"); plt.close(fig)
-    pd.DataFrame([dict(source=source, receptors=len(usable), fitting=n_train, withheld=n_held,
+    pd.DataFrame([dict(source=source, variant=variant, receptors=len(usable), fitting=n_train, withheld=n_held,
         anthro_near_median=near["median"], anthro_near_q025=near.q025, anthro_near_q975=near.q975,
-        **{f"rmse_{k}": ev.loc[k, "rmse_ppb"] for k in names})]).to_csv(OUT / f"poster_inversion_{source}.csv", index=False)
+        **{f"rmse_{k}": ev.loc[k, "rmse_ppb"] for k in names})]).to_csv(path.with_suffix(".csv"), index=False)
     print(path)
     return path
 
@@ -95,4 +123,5 @@ def build(source: str) -> Path:
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source", default="original", choices=list(SOURCES))
-    build(p.parse_args().source)
+    p.add_argument("--variant", default="base")
+    a = p.parse_args(); build(a.source, a.variant)

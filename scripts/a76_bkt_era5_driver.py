@@ -47,11 +47,11 @@ LIB = DATA / "lib"
 OUT = ROOT / "outputs/hysplit/era5"
 RUNS = OUT / "runs"
 HYSPLIT_HOME = rev.HYSPLIT_HOME
-AREA = [30, 50, -40, 160]  # N, W, S, E  (matches the wide GFS crop)
-LEVELS = [1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 700, 650, 600, 550, 500, 450, 400,
-          350, 300, 250, 225, 200, 175, 150, 125, 100]
+AREA = [20, 70, -25, 140]  # N, W, S, E. Smaller than the wide GFS crop: the CDS route from this
+# site runs at tens of kB/s, so volume is the binding constraint (13 September 2026).
+LEVELS = [1000, 950, 925, 900, 850, 800, 750, 700, 600, 500, 400, 300, 250, 200, 150, 100]
 CASES = list(rev.ANCHORS) + [rev.FORWARD_CASE]
-LABEL = "ECMWF ERA5 reanalysis, 0.25 degree, hourly, 27 pressure levels, ARL format via era52arl"
+LABEL = "ECMWF ERA5 reanalysis, 0.25 degree, hourly, 16 pressure levels, 70-140E 25S-20N, ARL format via era52arl"
 PRESSURE_VARS = ["geopotential", "temperature", "u_component_of_wind", "v_component_of_wind",
                  "vertical_velocity", "relative_humidity"]
 SURFACE_ANALYSIS_VARS = ["2m_temperature", "10m_u_component_of_wind", "10m_v_component_of_wind",
@@ -60,6 +60,12 @@ SURFACE_ANALYSIS_VARS = ["2m_temperature", "10m_u_component_of_wind", "10m_v_com
                          "geopotential", "friction_velocity"]
 SURFACE_FORECAST_VARS = ["total_precipitation", "surface_sensible_heat_flux",
                          "surface_solar_radiation_downwards", "surface_latent_heat_flux"]
+# ECMWF accumulated surface fluxes (sshf, slhf) are positive DOWNWARD in J m-2
+# per hour; HYSPLIT's SHTF and LTHF are positive UPWARD in W m-2. The stock
+# era52arl map only divides by 3600, which hands HYSPLIT a strongly negative
+# daytime heat flux and a spuriously stable boundary layer (found 13 September
+# 2026: 1.3 to 3.8 times the GFS surface sensitivity at the anchors). The sign
+# is flipped here for both turbulent heat fluxes; radiation (ssrd) stays positive.
 CFG = """&SETUP
  numatm = 6,
  atmgrb = 'z','t','u','v','w','r',
@@ -71,7 +77,7 @@ CFG = """&SETUP
  sfcgrb = '2t','10v','10u','tcc','sp','2d','blh','cape','z','tp','sshf','ssrd','slhf','zust',
  sfccat =   167,   166,  165,  164, 134, 168, 159, 59,  129, 228, 146, 169, 147, 3
  sfcnum =   167,   166,  165,  164, 134, 168, 159, 59,  129, 228, 146, 169, 147, 3
- sfccnv =   1.0, 1.0, 1.0,  1.0, 0.01 ,1.0, 1.0, 1.0 ,0.102, 1.0, 0.00028, 0.00028, 0.00028, 1.0
+ sfccnv =   1.0, 1.0, 1.0,  1.0, 0.01 ,1.0, 1.0, 1.0 ,0.102, 1.0, -0.00028, 0.00028, -0.00028, 1.0
  sfcarl = 'T02M','V10M','U10M','TCLD','PRSS','DP2M','PBLH','CAPE','SHGT','TPP1','SHTF','DSWF','LTHF','USTR',
  numlev = %d
  plev = %s
@@ -112,8 +118,28 @@ def request(kind: str, day: pd.Timestamp) -> tuple[str, dict]:
     raise ValueError(kind)
 
 
-def fetch(workers: int = 2, period: str = "cases") -> None:
+def bind_interface(device: str) -> None:
+    """Pin every new TCP connection of this process to one network device.
+
+    The workstation has a LAN default route (about 0.3 MB/s abroad) and a
+    WiFi link (about 12 MB/s). SO_BINDTODEVICE selects the device without
+    touching the routing table and needs no privileges on this kernel.
+    """
+    import socket
+    original = socket.socket.connect
+
+    def connect(self, address):
+        if self.family == socket.AF_INET and self.type == socket.SOCK_STREAM:
+            self.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, device.encode())
+        return original(self, address)
+    socket.socket.connect = connect
+    print(f"TCP connections bound to {device}", flush=True)
+
+
+def fetch(workers: int = 2, period: str = "cases", interface: str | None = None) -> None:
     import cdsapi
+    if interface:
+        bind_interface(interface)
     GRIB.mkdir(parents=True, exist_ok=True)
     client = cdsapi.Client(quiet=True)
     days = needed_days(period)
@@ -193,6 +219,7 @@ def convert(days: pd.DatetimeIndex | None = None) -> None:
         output.replace(target)
         header = arl_header(target)
         record = dict(day_utc=str(day.date()), converter="era52arl (HYSPLIT 5.4.2 data2arl)", cfg=CFG % (len(LEVELS), LEVELS),
+                      flux_sign="sshf and slhf negated to HYSPLIT upward-positive convention",
                       inputs={k: json.loads(grib_path(day, k).with_suffix(".grib.json").read_text())["sha256"] for k in ("pl", "sfc", "fc")},
                       bytes=target.stat().st_size, sha256=sha256(target), header=header,
                       created_at_utc=datetime.now(timezone.utc).isoformat())
@@ -224,7 +251,7 @@ def check() -> None:
     probe = OUT / "probe"
     shutil.rmtree(probe, ignore_errors=True)
     stamp = pd.Timestamp("2019-09-23T06:00")
-    cfg = replace(rev.base_config(500, 30.0, 0), meteorology_label=LABEL, hours_back=6)
+    cfg = replace(rev.base_config(500, 30.0, 0), meteorology_label=LABEL, hours_back=6, **GRID)
     ctx = {"station": "BKT", "time_utc": stamp.isoformat() + "Z", "purpose": "ERA5 driver probe"}
     directory = model.run_footprint(stamp, ARL, probe, HYSPLIT_HOME, cfg, False,
         meteorology_paths=[arl_path(stamp.normalize())], transport=model.TransportOptions(),
@@ -236,18 +263,21 @@ def check() -> None:
           f"warnings: {warnings.strip()[:300] or 'none'}", flush=True)
 
 
+GRID = dict(grid_span_lat_deg=40, grid_span_lon_deg=60)  # inside the 70-140E / 25S-20N meteorology
+
+
 def jobs(group: str = "cases") -> list[tuple[str, pd.Timestamp, model.FootprintConfig]]:
     items = []
     if group == "cases":
         for seed in rev.SEEDS:
-            items.append((f"forward_s{seed}", rev.FORWARD_CASE, replace(rev.base_config(10000, 30.0, seed), meteorology_label=LABEL)))
+            items.append((f"forward_s{seed}", rev.FORWARD_CASE, replace(rev.base_config(10000, 30.0, seed), meteorology_label=LABEL, **GRID)))
         for seed in rev.SEEDS:
             for stamp in rev.ANCHORS:
-                items.append((f"anchor_s{seed}", stamp, replace(rev.base_config(2000, 30.0, seed), meteorology_label=LABEL)))
+                items.append((f"anchor_s{seed}", stamp, replace(rev.base_config(2000, 30.0, seed), meteorology_label=LABEL, **GRID)))
     elif group == "ensemble":
         for seed in rev.SEEDS:
             for stamp in rev.retained_receptors():
-                items.append((f"ensemble_s{seed}", stamp, replace(rev.base_config(2000, 30.0, seed), meteorology_label=LABEL)))
+                items.append((f"ensemble_s{seed}", stamp, replace(rev.base_config(2000, 30.0, seed), meteorology_label=LABEL, **GRID)))
     else:
         raise ValueError(group)
     return items
@@ -319,11 +349,13 @@ if __name__ == "__main__":
     parser.add_argument("--jobs", type=int, default=6)
     parser.add_argument("--period", default="cases", choices=["cases", "full"])
     parser.add_argument("--group", default="cases", choices=["cases", "ensemble"])
+    parser.add_argument("--workers", type=int, default=6, help="parallel CDS transfers")
+    parser.add_argument("--interface", default=None, help="network device to pin the transfers to (for example wlp0s20f3)")
     args = parser.parse_args()
     if args.stage == "days":
         print("\n".join(str(d.date()) for d in needed_days(args.period)))
     elif args.stage == "fetch":
-        fetch(period=args.period)
+        fetch(workers=args.workers, period=args.period, interface=args.interface)
     elif args.stage == "convert":
         convert(needed_days(args.period))
     elif args.stage == "check":
