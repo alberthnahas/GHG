@@ -137,7 +137,13 @@ def matching_flux(flux: np.ndarray, lat: np.ndarray, lon: np.ndarray,
     return regrid_coefficients(flux*cell_area_km2(lat, lon), lat, lon, target_lat, target_lon)/cell_area_km2(target_lat,target_lon)
 
 
-def edgar_fluxes(target_lat, target_lon):
+def edgar_fluxes(target_lat, target_lon, bounds=(-11, 11, 84, 117)):
+    """Yield (gas, sector, flux on the target grid, quality) for September 2019.
+
+    ``bounds`` = (south, north, west, east) of the native selection; it must
+    contain the target grid. The default is the original regional window.
+    """
+    south, north, west, east = bounds
     paths = sorted((ROOT / "data/bkt_sources/edgar_v8").glob("*_2019.nc"))
     if len(paths) != 16: raise ValueError(f"Incomplete EDGAR acquisition: {len(paths)} of 16 sectors")
     quality = []
@@ -147,7 +153,7 @@ def edgar_fluxes(target_lat, target_lon):
         with xr.open_dataset(path) as ds:
             if ds.fluxes.attrs["units"] != "kg m-2 s-1" or ds.fluxes.attrs["substance"] != gas:
                 raise ValueError("EDGAR units/species mismatch")
-            sub = ds.fluxes.sel(time="2019-09-15", lat=slice(-11,11), lon=slice(84,117)).load()
+            sub = ds.fluxes.sel(time="2019-09-15", lat=slice(south, north), lon=slice(west, east)).load()
             flux = sub.values.astype(float)*1e9/MW[gas]
             quality.append(dict(dataset="EDGAR v8.0", gas=gas, sector=sector,
                                 source_period="September 2019 monthly mean", input_unit="kg m-2 s-1",

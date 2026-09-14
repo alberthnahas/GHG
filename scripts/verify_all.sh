@@ -66,9 +66,11 @@ latex_gate() {
     out="$("${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py 2>&1)" || { echo "$out"; return 1; }
     echo "   0 stray table headers"
     if [[ -f outputs/hysplit/gfs/analysis/report_values.json ]]; then
-        "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py outputs/BKT_HYSPLIT_STILT_Footprint_Report.pdf >/dev/null || return 1
+        for doc in BKT_Forward_Source_Influence_Report BKT_Methane_Inversion_Report BKT_Transport_Technical_Companion; do
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py "outputs/$doc.pdf" >/dev/null || return 1
+        done
         "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_gfs_report.py >/dev/null || return 1
-        echo "   GFS source-influence and methane-inversion report checks passed"
+        echo "   forward, inversion and transport-companion report checks passed"
         if [[ -f outputs/hysplit/domain_budget_extension/tables/full_receptor_budget.csv ]]; then
             "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_bkt_domain_budget_extension >/dev/null || return 1
             "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_domain_budget_extension.py >/dev/null || return 1

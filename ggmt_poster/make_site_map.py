@@ -13,7 +13,7 @@ sites = [
     ("BKT", 100.318, -0.202, "Bukit Kototabang", "Remote mountain, GAW Global"),
     ("JMB", 103.649, -1.611, "Jambi", "Lowland peat and plantation"),
     ("KMY", 106.850, -6.155, "Kemayoran", "Jakarta megacity core"),
-    ("BRI", 120.030, -1.200, "Bariri", "Montane rainforest"),
+    ("PLU", 120.030, -1.200, "Bariri", "Montane rainforest"),
     ("SRG", 131.288, -0.862, "Sorong", "Coastal small city"),
 ]
 
@@ -32,7 +32,7 @@ offsets = {
     "BKT": (-0.6, 1.55),
     "JMB": (0.0, -2.1),
     "KMY": (0.3, -2.0),
-    "BRI": (0.3, 1.55),
+    "PLU": (0.3, 1.55),
     "SRG": (-0.2, 1.55),
 }
 for code, lon, lat, name, profile in sites:

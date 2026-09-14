@@ -61,18 +61,34 @@ DOCS = {
         subtitle="Formulas, the reasoning behind each choice, and four headline "
                  "results worked end to end",
         toc=True),
-    "BKT_HYSPLIT_STILT_Footprint_Report": dict(
-        title="Greenhouse-gas source influence and methane emission inversion at Bukit Kototabang",
-        running_title="BKT source influence and methane inversion",
-        prefer_vector=True,
-        figure_placement="htbp",
-        flow_barriers=True,
-        measured_tables=True,
-        title_meta="Bukit Kototabang, Indonesia | September–October 2019",
+    "BKT_Forward_Source_Influence_Report": dict(
+        title="Greenhouse-gas source influence at Bukit Kototabang: the 26 September 2019 case",
+        running_title="BKT source influence, 26 September 2019",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        title_meta="Bukit Kototabang, Indonesia | 23–26 September 2019, extended to five days",
         title_no_hyphenation=True,
-        subtitle="GFS-driven source influence and an observation-constrained regional methane experiment",
-        title_footer=("September–October 2019 research experiments. Conditional source estimates, "
-                      "not independently verified regional emission totals."),
+        subtitle="HYSPLIT-STILT footprints, inventory-weighted enhancements and their dependence on the meteorological driver",
+        title_footer=("Conditional model contributions for one receptor hour, not observational source attribution "
+                      "or a closed concentration budget."),
+        toc=True),
+    "BKT_Methane_Inversion_Report": dict(
+        title="Regional methane emissions constrained by Bukit Kototabang",
+        running_title="BKT methane inversion, September–October 2019",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        title_meta="Bukit Kototabang, Indonesia | 9 September–6 October 2019",
+        title_no_hyphenation=True,
+        subtitle="A transport-ensemble Bayesian inversion of four regional methane priors under GFS and ERA5 meteorology",
+        title_footer=("Regional adjustment factors under a stated error model, conditional on parameterized transport; "
+                      "not independently verified emission totals."),
+        toc=True),
+    "BKT_Transport_Technical_Companion": dict(
+        title="Transport technical companion for the Bukit Kototabang source studies",
+        running_title="BKT transport companion",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        title_meta="Bukit Kototabang, Indonesia | HYSPLIT-STILT, GFS and ERA5, September–October 2019",
+        title_no_hyphenation=True,
+        subtitle="Numerical completeness, meteorological drivers, benchmark tests and quality assurance behind the two reports",
+        title_footer="Technical record; contains no source attribution.",
         toc=True),
 }
 

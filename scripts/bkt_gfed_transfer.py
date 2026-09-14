@@ -123,6 +123,17 @@ if __name__ == "__main__":
     p.add_argument("--bounds",type=float,nargs=4,default=(84,-11,117,11))
     p.add_argument("--gases",nargs="+",choices=["CO2","CH4","CO"],default=("CO2","CH4","CO"))
     p.add_argument("--inspect",action="store_true")
+    p.add_argument("--interface",default=None,help="pin the SFTP session to one network device (for example wlp0s20f3)")
     a = p.parse_args()
+    if a.interface:
+        # Same device pinning as a76.bind_interface; inlined because this script runs under the system Python.
+        import socket
+        _connect = socket.socket.connect
+        def _pinned(self, address, _dev=a.interface.encode()):
+            if self.family == socket.AF_INET and self.type == socket.SOCK_STREAM:
+                self.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, _dev)
+            return _connect(self, address)
+        socket.socket.connect = _pinned
+        print(f"TCP connections bound to {a.interface}", flush=True)
     if a.inspect: inspect_public(a.remote)
     else: transfer(a.remote, a.output, a.fast, a.subset,a.day_start,a.day_end,a.bounds,a.gases)
