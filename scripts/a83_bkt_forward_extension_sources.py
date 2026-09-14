@@ -45,7 +45,10 @@ def fields() -> dict[str, xr.DataArray]:
 def gfed_hourly(field: xr.DataArray, gas: str) -> tuple[np.ndarray, str]:
     """Daily GFED mass -> flux on the footprint grid for every source hour; returns (hourly, coverage)."""
     days = pd.DatetimeIndex(field.time.values).normalize()
-    if gas == "CH4" and field.lon.values[0] < 84:
+    wide_all = ROOT / "data/bkt_sources/gfed51/GFED51_20190921_26_wide.npz"  # CO2, CH4, CO; 21-26 Sep; 50-160E 40S-30N
+    if field.lon.values[0] < 84 and wide_all.exists():
+        path = wide_all; coverage = "complete"
+    elif gas == "CH4" and field.lon.values[0] < 84:
         path = ROOT / "data/bkt_sources/gfed51/GFED51_20190904_30_wide.npz"; coverage = "complete"
     elif field.lon.values[0] < 84:
         path = ROOT / "data/bkt_sources/gfed51/GFED51_20190923_26_region.npz"; coverage = "lower bound: 23-26 Sep, 84-117E 11S-11N only"
@@ -109,6 +112,13 @@ def main() -> None:
         if not np.isclose(mine[gas], pub[gas], rtol=1e-6):
             raise ValueError(f"Recomputed 72 h fire {gas} {mine[gas]} differs from published {pub[gas]}")
     print("72 h regional case reproduces the published fire contributions", flush=True)
+    # The three-gas wide extract must agree with the earlier methane-only wide extract on the shared days and box.
+    with np.load(ROOT / "data/bkt_sources/gfed51/GFED51_20190921_26_wide.npz") as a, np.load(ROOT / "data/bkt_sources/gfed51/GFED51_20190904_30_wide.npz") as b:
+        ta = pd.Timestamp("1800-01-01") + pd.to_timedelta(a["time"], unit="h"); tb = pd.Timestamp("1800-01-01") + pd.to_timedelta(b["time"], unit="h")
+        shared = [i for i, t in enumerate(tb) if t in set(ta)]
+        if not (np.array_equal(a["lat"], b["lat"]) and np.array_equal(a["lon"], b["lon"]) and np.array_equal(a["CH4"], b["CH4"][shared])):
+            raise ValueError("Three-gas wide GFED extract disagrees with the methane-only wide extract")
+    print("wide three-gas GFED extract agrees with the methane-only extract on shared days", flush=True)
 
 
 if __name__ == "__main__":

@@ -219,3 +219,10 @@ inversion queued behind the 156-run ensemble
   `docs/archive/BKT_HYSPLIT_STILT_Footprint_Report_combined_20260913.md`.
 - `validate_bkt_gfs_report.py`, `validate_bkt_barra.py`, `verify_all.sh` and
   `a14_latex.py` updated for the three documents.
+
+2026-09-14: the wide-box three-gas GFED extract for 21 to 26 September
+(`GFED51_20190921_26_wide.npz`, fetched over WiFi in 40 s with
+`bkt_gfed_transfer.py --subset --interface`) completes the extended forward
+case: GFS 120 h fire CO 738 ppb (139 % of observed), ERA5 1031 ppb (194 %),
+fire CO2 3.80 and 5.52 ppm; methane agrees bit for bit with the earlier
+methane-only extract. Lower-bound wording removed from the forward report.

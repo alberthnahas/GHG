@@ -66,8 +66,11 @@ def forward_tokens() -> dict[str, str]:
          "F_ANTH_CHANGE_CH4": f"{100 * (ext.loc['GFS_120h_wide', 'anthropogenic_ch4_ppb'] / ext.loc['GFS_72h_regional', 'anthropogenic_ch4_ppb'] - 1):+.1f}",
          "F_FIRE_CH4_GAIN": f"{100 * (ext.loc['GFS_120h_wide', 'fire_ch4_ppb'] / ext.loc['GFS_72h_regional', 'fire_ch4_ppb'] - 1):.0f}",
          "F_FIRE_CH4_NEW": f"{ext.loc['GFS_120h_wide', 'fire_ch4_ppb']:.1f}", "F_FIRE_CH4_ERA5": f"{ext.loc['ERA5_120h', 'fire_ch4_ppb']:.1f}",
-         "F_FIRE_CO_SCALED_GFS": f"{ext.loc['GFS_72h_regional', 'fire_co_ppb'] * ext.loc['GFS_120h_wide', 'fire_ch4_ppb'] / ext.loc['GFS_72h_regional', 'fire_ch4_ppb']:.0f}",
-         "F_FIRE_CO_LOWER_ERA5": f"{ext.loc['ERA5_120h', 'fire_co_to_observed_percent']:.0f}",
+         "F_FIRE_CO2_NEW": f"{ext.loc['GFS_120h_wide', 'fire_co2_ppm']:.2f}", "F_FIRE_CO_NEW": f"{ext.loc['GFS_120h_wide', 'fire_co_ppb']:.0f}",
+         "F_FIRE_CO_ERA5": f"{ext.loc['ERA5_120h', 'fire_co_ppb']:.0f}",
+         "F_FIRE_CO_PCT_GFS_OLD": f"{ext.loc['GFS_72h_regional', 'fire_co_to_observed_percent']:.0f}",
+         "F_FIRE_CO_PCT_GFS": f"{ext.loc['GFS_120h_wide', 'fire_co_to_observed_percent']:.0f}",
+         "F_FIRE_CO_PCT_ERA5": f"{ext.loc['ERA5_120h', 'fire_co_to_observed_percent']:.0f}",
          "F_LAYER_RATIO": f"{ext.loc['GFS_120h_wide_1000m_layer', 'integrated_sensitivity'] / new_total:.1f}"}
     detail = pd.read_csv(era.OUT / "tables/driver_comparison.csv").query("case == 'forward'")
     rows = [["Integrated sensitivity", f"{old_total:.2f}", f"{new_total:.2f}", f"{ext.loc['ERA5_120h', 'integrated_sensitivity']:.2f}"],
@@ -86,8 +89,10 @@ def forward_tokens() -> dict[str, str]:
              ["GFED fire CO₂ (ppm)", cell("GFS_72h_regional", "CO2"), cell("GFS_120h_wide", "CO2"), cell("GFS_120h_wide_1000m_layer", "CO2"), cell("ERA5_120h", "CO2")],
              ["GFED fire CH₄ (ppb)", cell("GFS_72h_regional", "CH4"), cell("GFS_120h_wide", "CH4"), cell("GFS_120h_wide_1000m_layer", "CH4"), cell("ERA5_120h", "CH4")],
              ["GFED fire CO (ppb)", cell("GFS_72h_regional", "CO"), cell("GFS_120h_wide", "CO"), cell("GFS_120h_wide_1000m_layer", "CO"), cell("ERA5_120h", "CO")],
-             ["Fire CO as % of observed CO", f"{ext.loc['GFS_72h_regional', 'fire_co_to_observed_percent']:.0f}", f"{ext.loc['GFS_120h_wide', 'fire_co_to_observed_percent']:.0f}†", f"{ext.loc['GFS_120h_wide_1000m_layer', 'fire_co_to_observed_percent']:.0f}†", f"{ext.loc['ERA5_120h', 'fire_co_to_observed_percent']:.0f}†"]]
-    t["F_SOURCE_TABLE"] = ("**Table 102. Inventory-weighted enhancements for the extended forward case.** Surface-release equivalents from September 2019 EDGAR v8.0 and daily GFED5.1 fluxes convolved with each footprint; the 1,000 m column releases the same fluxes into the fixed upper layer. † Lower bound: daily CO₂ and CO fire fields are available locally only for 23–26 September on the regional box, so these entries omit the added days and area that raise the methane value.\n\n"
+             ["Fire CO as % of observed CO", f"{ext.loc['GFS_72h_regional', 'fire_co_to_observed_percent']:.0f}", f"{ext.loc['GFS_120h_wide', 'fire_co_to_observed_percent']:.0f}" + ("†" if cov[("GFS_120h_wide", "CO")] != "complete" else ""), f"{ext.loc['GFS_120h_wide_1000m_layer', 'fire_co_to_observed_percent']:.0f}" + ("†" if cov[("GFS_120h_wide_1000m_layer", "CO")] != "complete" else ""), f"{ext.loc['ERA5_120h', 'fire_co_to_observed_percent']:.0f}" + ("†" if cov[("ERA5_120h", "CO")] != "complete" else "")]]
+    partial = any(c != "complete" for c in cov.values)
+    note = " † Lower bound: daily fire fields for this gas are available only for part of the window or area." if partial else ""
+    t["F_SOURCE_TABLE"] = ("**Table 102. Inventory-weighted enhancements for the extended forward case.** Surface-release equivalents from September 2019 EDGAR v8.0 and daily GFED5.1 fluxes (21–26 September on the widened box) convolved with each footprint; the 1,000 m column releases the same fluxes into the fixed upper layer." + note + "\n\n"
         + markdown_table(["Quantity", "GFS 72 h regional", "GFS 120 h widened", "GFS 120 h, 1,000 m layer", "ERA5 120 h"], srows))
     return t
 

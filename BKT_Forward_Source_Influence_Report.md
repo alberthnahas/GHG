@@ -11,7 +11,7 @@ Convolution with September 2019 anthropogenic fluxes from the Emissions Database
 The GDAS fire-only CO estimate (1,023.2 ppb) exceeds the observed total, whereas GFS fire CO consumes 95.8% of that total. This budget constraint exposes strong scenario dependence; it does not validate the GFS fire estimate.
 
 
-Extending the same receptor hour to five days on a widened domain, with 10,020 particles per member, raises the integrated surface sensitivity from 8.29 to 10.92 ppm per (µmol m⁻² s⁻¹) with no sensitivity left on the domain edge, and 9% of it arriving in the oldest 24 h. The anthropogenic enhancements are unchanged within -0.6% for CH₄ and +3.7% for CO₂, whereas the methane fire enhancement rises by 45%. The same case under hourly ERA5 meteorology gives 1.17 times the GFS sensitivity, and its fire-CO lower bound alone reaches 113% of the observed CO. The surface-release fire scenario is therefore incompatible with the observation under either driver once the full five-day influence is counted; the driver difference is the dominant transport uncertainty.
+Extending the same receptor hour to five days on a widened domain, with 10,020 particles per member, raises the integrated surface sensitivity from 8.29 to 10.92 ppm per (µmol m⁻² s⁻¹) with no sensitivity left on the domain edge, and 9% of it arriving in the oldest 24 h. The anthropogenic enhancements are unchanged within -0.6% for CH₄ and +3.7% for CO₂, whereas the methane fire enhancement rises by 45%. The fire CO scenario, 96% of the observed CO in the 72 h case, reaches 139% under the five-day GFS footprint and 194% under hourly ERA5 meteorology, which gives 1.17 times the GFS sensitivity. The surface-release fire scenario is therefore incompatible with the observation under either driver once the full five-day influence is counted, and the driver difference is the dominant transport uncertainty.
 
 The principal implication is that source interpretation at BKT must account jointly for transport, source distribution and emission timing. Meteorological representation, unresolved mountain circulation, vertical release assumptions, ecosystem exchange and background concentrations remain material uncertainties. The analysis does not establish a complete concentration budget, responsibility of an individual facility, or operational model skill.
 
@@ -289,20 +289,20 @@ The published 72 h regional configuration truncates influence in two ways: sourc
 
 **Figure 13.** Cumulative surface sensitivity by backward lag and by distance for the published 72 h regional case, the 120 h widened GFS case and the 120 h ERA5 case, with the GFS surface-layer and 1,000 m-layer fields. The upper layer gives the receptor response to a unit flux released uniformly into that layer, the quantity needed for elevated fire injection.
 
-The same footprints were convolved with the inventories. Anthropogenic enhancements change by +3.7% for CO₂ and -0.6% for CH₄, because the added sensitivity falls mostly over sea and sparsely emitting land. Methane fire rises by 45% to 62.0 ppb with the complete wide-grid fire field. Daily CO₂ and CO fire fields are held locally only for 23–26 September on the regional box, so for those two gases the extended case yields lower bounds that equal the 72 h values; scaling by the methane gain would put GFS fire CO near 737 ppb against the observed 531.15 ppb. Emission into the 1,000 m layer multiplies every contribution by about 3.3, so an elevated fire injection does not relieve the over-closure; it deepens it.
+The same footprints were convolved with the inventories. Anthropogenic enhancements change by +3.7% for CO₂ and -0.6% for CH₄, because the added sensitivity falls mostly over sea and sparsely emitting land. Fire contributions grow with the recovered influence: methane fire rises by 45% to 62.0 ppb, fire CO₂ to 3.80 ppm, and fire CO to 738 ppb, which is 139% of the observed 531.15 ppb with no background and no other combustion source yet accounted for. Emission into the 1,000 m layer multiplies every contribution by about 3.3, so an elevated fire injection does not relieve the over-closure; it deepens it.
 
-**Table 8. Inventory-weighted enhancements for the extended forward case.** Surface-release equivalents from September 2019 EDGAR v8.0 and daily GFED5.1 fluxes convolved with each footprint; the 1,000 m column releases the same fluxes into the fixed upper layer. † Lower bound: daily CO₂ and CO fire fields are available locally only for 23–26 September on the regional box, so these entries omit the added days and area that raise the methane value.
+**Table 8. Inventory-weighted enhancements for the extended forward case.** Surface-release equivalents from September 2019 EDGAR v8.0 and daily GFED5.1 fluxes (21–26 September on the widened box) convolved with each footprint; the 1,000 m column releases the same fluxes into the fixed upper layer.
 
 | Quantity | GFS 72 h regional | GFS 120 h widened | GFS 120 h, 1,000 m layer | ERA5 120 h |
 | --- | --- | --- | --- | --- |
 | EDGAR anthropogenic CO₂ (ppm) | 1.045 | 1.083 | 3.445 | 0.907 |
 | EDGAR anthropogenic CH₄ (ppb) | 48.5 | 48.2 | 180.4 | 50.1 |
-| GFED fire CO₂ (ppm) | 2.60 | 2.61† | 8.81† | 3.33† |
+| GFED fire CO₂ (ppm) | 2.60 | 3.80 | 13.08 | 5.52 |
 | GFED fire CH₄ (ppb) | 42.9 | 62.0 | 213.0 | 86.1 |
-| GFED fire CO (ppb) | 508.9 | 509.9† | 1714.9† | 599.3† |
-| Fire CO as % of observed CO | 96 | 96† | 323† | 113† |
+| GFED fire CO (ppb) | 508.9 | 737.5 | 2533.6 | 1030.6 |
+| Fire CO as % of observed CO | 96 | 139 | 477 | 194 |
 
-Under hourly ERA5 meteorology the five-day sensitivity is 1.17 times the GFS value and the footprint is placed in largely different cells (106% cell-level absolute difference). Its methane fire enhancement is 86.1 ppb and its fire-CO lower bound 113% of the observation. Across the four inversion anchors and this case, ERA5 gives 1.16 to 1.86 times the GFS sensitivity with seed spread below 2%, a structural difference traceable to ERA5's shallower midday boundary layer at BKT and its hourly winds; which driver is closer to the atmosphere is not established by this comparison.
+Under hourly ERA5 meteorology the five-day sensitivity is 1.17 times the GFS value and the footprint is placed in largely different cells (106% cell-level absolute difference). Its methane fire enhancement is 86.1 ppb and its fire CO 1031 ppb, 194% of the observation. Across the four inversion anchors and this case, ERA5 gives 1.16 to 1.86 times the GFS sensitivity with seed spread below 2%, a structural difference traceable to ERA5's shallower midday boundary layer at BKT and its hourly winds; which driver is closer to the atmosphere is not established by this comparison.
 
 ![Driver comparison.](outputs/hysplit/revision/figures/figure_R04_driver_maps.png)
 
@@ -351,7 +351,7 @@ For the selected BKT observation, the GFS-driven footprint quantifies the distri
 
 EDGAR and GFED provide explicit, gas-specific source scenarios. The anthropogenic sector and provincial rankings are conditional on inventory fluxes and modeled transport, and daily fire allocation changes the predicted influence. These products go beyond a pathway map, but do not constitute observational source attribution or a closed atmospheric greenhouse-gas budget.
 
-The five-day widened configuration shows that the 72 h regional case understated fire influence: the methane fire enhancement rises by 45%, and the surface-release fire-CO scenario exceeds the observed CO under GFS by the same scaling and under ERA5 even on a lower bound. Elevated injection worsens rather than relieves this. The fire inventory, its vertical release, or the transport must therefore be wrong in a way that a single receptor hour cannot resolve. The ERA5 and GFS drivers differ by a factor of 1.16 to 1.86 in surface sensitivity; that spread, not the seed spread, is the transport uncertainty to carry forward.
+The five-day widened configuration shows that the 72 h regional case understated fire influence: the methane fire enhancement rises by 45%, and the surface-release fire-CO scenario alone reaches 139% of the observed CO under GFS and 194% under ERA5. Elevated injection worsens rather than relieves this. The fire inventory, its vertical release, or the transport must therefore be wrong in a way that a single receptor hour cannot resolve. The ERA5 and GFS drivers differ by a factor of 1.16 to 1.86 in surface sensitivity; that spread, not the seed spread, is the transport uncertainty to carry forward.
 
 
 <!-- pdf-pagebreak -->
