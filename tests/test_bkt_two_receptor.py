@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import a84_bkt_jmb_two_receptor as T  # noqa: E402
 import a71_domain_budget_extension as ext  # noqa: E402
+import a88_jambi_peat_tests as P  # noqa: E402
 
 
 def synthetic_frame(n: int = 24) -> pd.DataFrame:
@@ -53,6 +54,23 @@ class DesignTests(unittest.TestCase):
             self.assertEqual((cfg.receptor_lat, cfg.receptor_lon), T.STATIONS[code][1:3])
             self.assertEqual(cfg.receptor_height_m_agl, 100.0); self.assertEqual(cfg.seed, -10)
         self.assertNotEqual(T.run_dir("BKT", 0, T.WINDOW[0]), T.run_dir("JMB", 0, T.WINDOW[0]))
+
+
+class PeatTests(unittest.TestCase):
+    def test_one_cell_polygon_rasterizes_to_one_cell(self) -> None:
+        import geopandas as gpd
+        from shapely.geometry import box
+        lat, lon = T.receptor_grid("JMB")
+        i, j = 120, 200
+        cell = gpd.GeoSeries([box(lon[j] - .125, lat[i] - .125, lon[j] + .125, lat[i] + .125)], crs="EPSG:4326")
+        frac = P.peat_fraction("JMB", cell)
+        self.assertAlmostEqual(float(frac.isel(lat=i, lon=j)), 1.0, places=6)
+        self.assertAlmostEqual(float(frac.sum()), 1.0, places=6)
+
+    def test_block_median_of_identical_weeks(self) -> None:
+        values = pd.Series([1., 2., 3., 1., 2., 3.]); weeks = pd.Series(["a", "a", "a", "b", "b", "b"])
+        boot = P.block_median(values, weeks, np.random.default_rng(0), reps=50)
+        self.assertTrue(np.allclose(boot, 2.0))
 
 
 @unittest.skipUnless((ROOT / "data/bkt_sources/edgar_v8/CH4_WASTE_2019.nc").exists(), "2019 sources absent")

@@ -211,7 +211,74 @@ def t04_jambi_nights():
     export(fig, 4, "jambi_nights")
 
 
+def t05_peat_season():
+    from scipy.stats import spearmanr
+    op = pd.read_csv(T.TABLES / "operator_base.csv", parse_dates=["time_utc"])
+    peat = pd.read_csv(T.TABLES / "peat_operator.csv", parse_dates=["time_utc"])
+    op = op.merge(peat, on=["station", "time_utc"]); op["hour"] = op.time_utc.dt.hour; op["enh"] = op.ch4 - op.background_ppb
+    jm = op[op.station.eq("JMB") & op.transport_usable]
+    diff = pd.read_csv(T.TABLES / "jambi_night_season_difference.csv")
+    prox = pd.read_csv(T.TABLES / "peat_proximity.csv").set_index("station")
+    with xr.open_dataset(T.INPUTS / "peat_fraction_jmb.nc") as ds:
+        frac = ds.peat_fraction.load()
+    with xr.open_dataset(T.INVERSION / "spatial_operator_jmb.nc") as ds:
+        fp = ds.footprint.sel(receptor=jm[jm.hour.eq(18)].time_utc.values).mean("receptor").load()
+    fig = plt.figure(figsize=(7.2, 4.5))
+    extent = (101.4, 106.4, -4.3, 0.9)
+    mx = map_axis(fig, [.04, .25, .30, .55], extent=extent)
+    for text in list(mx.texts):  # map_axis labels both towers; drop any outside this extent
+        x, y = text.get_position()
+        if not (extent[0] <= x <= extent[1] and extent[2] <= y <= extent[3]):
+            text.remove()
+    sub = frac.sel(lat=slice(extent[2] - .5, extent[3] + .5), lon=slice(extent[0] - .5, extent[1] + .5))
+    mesh = mx.pcolormesh(sub.lon, sub.lat, np.ma.masked_less_equal(sub.values, 0), cmap="Greens", vmin=0, vmax=1, shading="nearest", zorder=1, transform=ccrs.PlateCarree())
+    vals = np.sort(fp.values.ravel())[::-1]; cum = np.cumsum(vals) / vals.sum()
+    levels = sorted({float(vals[np.searchsorted(cum, q)]) for q in (.5, .8)})
+    cs = mx.contour(fp.lon, fp.lat, fp.values, levels=levels, colors=[ORANGE], linewidths=[1.2, .7][:len(levels)], zorder=6, transform=ccrs.PlateCarree())
+    _, lat, lon, _ = T.STATIONS["JMB"]
+    az = np.linspace(0, 360, 181)
+    for radius in (25, 50):
+        x, y, _ = Geod(ellps="WGS84").fwd(np.full(181, lon), np.full(181, lat), az, np.full(181, radius * 1000))
+        mx.plot(x, y, ls=":", color="#333", lw=.7, zorder=7, transform=ccrs.PlateCarree())
+    mx.set_title("(a) Mapped peat fraction and the\nJambi 18 UTC footprint (50%, 80% of mass)", fontsize=7.5)
+    cb = fig.colorbar(mesh, cax=fig.add_axes([.07, .135, .24, .015]), orientation="horizontal"); cb.ax.tick_params(labelsize=6.5)
+    cb.set_label("Peat area fraction of 0.25° cell", fontsize=6.5, labelpad=1)
+    from matplotlib.lines import Line2D
+    ax = fig.add_axes([.42, .25, .25, .55])
+    handles = []
+    for hour, marker, label in ((6, "o", "06 UTC"), (18, "s", "18 UTC")):
+        q = jm[jm.hour.eq(hour)]
+        rho = spearmanr(q.peat_sensitivity, q.enh).statistic
+        alpha = .9 if hour == 6 else .5
+        ax.scatter(q.peat_sensitivity, q.enh, s=20, marker=marker, color=ORANGE, alpha=alpha, edgecolor="white", lw=.4)
+        handles.append(Line2D([], [], ls="none", marker=marker, ms=5, color=ORANGE, alpha=alpha, label=f"{label}, n={len(q)}, rank r={rho:+.2f}"))
+    ax.set_xlabel("Peat-weighted sensitivity\n(ppm per µmol m⁻² s⁻¹)", fontsize=7.5); ax.set_ylabel("Observed enhancement (ppb)", fontsize=7.5)
+    ax.set_ylim(-20, max(jm.enh.max() * 1.22, 100))  # headroom so the legend sits above every point
+    ax.legend(handles=handles, fontsize=6.3, frameon=False, loc="upper right", borderaxespad=.1); ax.tick_params(labelsize=7)
+    ax.set_title("(b) Jambi enhancement vs peat exposure", fontsize=7.5, loc="left"); ax.spines[["top", "right"]].set_visible(False)
+    bx = fig.add_axes([.78, .25, .20, .55])
+    labels = {"co2_rate_ppm_h": "CO₂ rate", "ch4_rate_ppb_h": "CH₄ rate", "ratio_ppb_per_ppm": "CH₄:CO₂"}
+    for k, (definition, offset, marker) in enumerate((("main", -.12, "o"), ("core", .12, "D"))):
+        d = diff[diff.definition.eq(definition)].set_index("quantity")
+        for i, q in enumerate(labels):
+            r = d.loc[q]; w = abs(r.wet_median)
+            y = i + offset
+            bx.errorbar(100 * r.dry_minus_wet / w, y, xerr=[[100 * (r.dry_minus_wet - r.ci_lo) / w], [100 * (r.ci_hi - r.dry_minus_wet) / w]],
+                        fmt=marker, color=[BLUE, GREEN][k], ms=4, capsize=2, lw=1, label=("Nov–Apr vs May–Oct" if definition == "main" else "Dec–Mar vs Jun–Sep") if i == 0 else None)
+    bx.axvline(0, color=GREY, lw=.8); bx.set_yticks(range(3), list(labels.values()), fontsize=7); bx.set_ylim(2.4, -.4)
+    bx.set_xlabel("Dry minus wet\n(% of wet-season median)", fontsize=7.5); bx.tick_params(labelsize=7)
+    # centered in the empty band between the CO2 and CH4 rows (data y = 0.5 on the inverted 2.4 to -0.4 axis)
+    bx.legend(fontsize=5.8, frameon=False, loc="center", bbox_to_anchor=(.5, (2.4 - .5) / 2.8), handlelength=1.2, borderaxespad=0)
+    bx.set_title("(c) Night build-up, dry vs wet", fontsize=7.5, loc="left"); bx.spines[["top", "right"]].set_visible(False)
+    main = diff[diff.definition.eq("main")].set_index("quantity")
+    head(fig, "Jambi sits among peat, but its night methane does not follow peat",
+         f"Mapped peat lies {prox.loc['JMB', 'nearest_peat_km']:.1f} km from the Jambi tower and covers {prox.loc['JMB', 'peat_share_25km_percent']:.0f}% of the land within 25 km. Night CO₂ build-up rises in the dry season\n"
+         f"({main.loc['co2_rate_ppm_h', 'wet_median']:.2f} to {main.loc['co2_rate_ppm_h', 'dry_median']:.2f} ppm h⁻¹); the methane build-up and the CH₄:CO₂ ratio change by amounts the 2023–2025 record cannot resolve.")
+    footer(fig, "Peat polygons: GHG_INDONESIA peatland layer, source not recorded. Season test: nights 2023–2025, week-block bootstrap. Source: a88 tables.")
+    export(fig, 5, "peat_season")
+
+
 if __name__ == "__main__":
     apply_chart_style()
-    for f in (t01_footprints, t02_series, t03_multipliers, t04_jambi_nights):
+    for f in (t01_footprints, t02_series, t03_multipliers, t04_jambi_nights, t05_peat_season):
         f(); print(f.__name__, flush=True)
