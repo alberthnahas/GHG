@@ -270,3 +270,12 @@ multipliers 0.29 near, 0.56 far, 0.40 wetlands; fuel exploitation 0.32.
 Dataset check: EDGAR_2025_GHG covers 2023 and 2024; CT-NRT.v2025-1 is CO2
 only; no CarbonTracker-CH4 release reaches 2024, so December 2024 remains
 blocked for methane.
+
+2026-09-15: peatland and wet-versus-dry tests added to the two-receptor
+report as Section 5 (`scripts/a88_jambi_peat_tests.py`, figure T05). Peat map
+`GHG_INDONESIA/indonesia_peatlands.json` (1,277 polygons, no attributes):
+Jambi 4.2 km from peat, 29% peat within 25 km; night enhancement does not
+follow peat exposure; a uniform peat flux term is unconstrained and does not
+explain nights. Full-record nocturnal test reproduces Finding 85 (524 nights,
+3.04): dry-season CO2 build-up faster and resolved; CH4 build-up and ratio
+lower but unresolved, with dry 2024 and dry 2025 at opposite extremes.

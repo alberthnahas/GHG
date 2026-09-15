@@ -2,7 +2,8 @@
 """Build BKT_JMB_Two_Receptor_Report.md from its template and the a84/a87 evidence tables.
 
 Every number in the prose is computed here from a CSV or JSON written by a84
-(campaign, operator, inversion), a85 (figures) or a87 (dataset availability);
+(campaign, operator, inversion), a85 (figures), a87 (dataset availability) or
+a88 (peatland and wet-versus-dry tests);
 the 2019 comparison values come from the a75 revised inversion. Figures and
 tables are numbered by order of appearance after assembly.
 """
@@ -188,9 +189,111 @@ def tokens() -> dict[str, str]:
     return t
 
 
+def peat_tokens() -> dict[str, str]:
+    """Peatland and wet-versus-dry tests (a88). Each prose claim is checked against its table."""
+    import a88_jambi_peat_tests as P
+    t: dict[str, str] = {}
+    def need(condition, claim):
+        if not condition:
+            raise ValueError(f"Peat section claim no longer holds: {claim}")
+    prox = pd.read_csv(T.TABLES / "peat_proximity.csv").set_index("station")
+    t.update(J_PEAT_POLYS=f"{int(prox.polygons.iloc[0]):,}", J_PEAT_AREA=f"{round(float(prox.mapped_peat_area_km2.iloc[0]), -3):,.0f}",
+             J_JMB_PEAT_KM=f"{prox.loc['JMB', 'nearest_peat_km']:.1f}", J_JMB_PEAT10=f"{prox.loc['JMB', 'peat_share_10km_percent']:.0f}",
+             J_JMB_PEAT25=f"{prox.loc['JMB', 'peat_share_25km_percent']:.0f}", J_JMB_PEAT50=f"{prox.loc['JMB', 'peat_share_50km_percent']:.0f}",
+             J_BKT_PEAT_KM=f"{prox.loc['BKT', 'nearest_peat_km']:.0f}", J_BKT_PEAT100=f"{prox.loc['BKT', 'peat_share_100km_percent']:.1f}")
+    need(not prox.loc["JMB", "inside_peat"] and prox.loc["JMB", "peat_share_25km_percent"] > 5 * prox.loc["BKT", "peat_share_100km_percent"], "Jambi is a peat site, BKT is not")
+    hour = pd.read_csv(T.TABLES / "peat_summary_by_hour.csv").set_index(["station", "hour"])
+    t.update(J_PEAT_SHARE_JMB_06=f"{hour.loc[('JMB', 6), 'peat_share_percent']:.0f}", J_PEAT_SHARE_JMB_18=f"{hour.loc[('JMB', 18), 'peat_share_percent']:.0f}",
+             J_PEAT50_RATIO=f"{hour.loc[('JMB', 18), 'peat_sensitivity_50km'] / hour.loc[('JMB', 6), 'peat_sensitivity_50km']:.1f}")
+    need(hour.loc[("JMB", 18), "peat_share_percent"] > hour.loc[("JMB", 6), "peat_share_percent"], "night samples more peat")
+    cor = pd.read_csv(T.TABLES / "peat_correlations.csv").set_index(["station", "hour_utc", "target", "driver"])
+    def r(hour_utc, target, driver): return cor.loc[("JMB", hour_utc, target, driver)]
+    t.update(J_PEAT_N18=str(int(r(18, "enhancement_ppb", "peat_sensitivity").n)), J_PEAT_R18=f"{r(18, 'enhancement_ppb', 'peat_sensitivity').spearman:+.2f}",
+             J_PEAT50_R18=f"{r(18, 'enhancement_ppb', 'peat_sensitivity_50km').spearman:+.2f}", J_PEAT_RES_R18=f"{r(18, 'residual_ppb', 'peat_sensitivity').spearman:+.2f}",
+             J_PEAT_R06=f"{r(6, 'enhancement_ppb', 'peat_sensitivity').spearman:+.2f}", J_PEAT_N06=str(int(r(6, "enhancement_ppb", "peat_sensitivity").n)))
+    need(r(18, "enhancement_ppb", "peat_sensitivity").spearman < .2 and r(18, "enhancement_ppb", "peat_sensitivity_50km").spearman < .2, "night enhancement does not rise with peat")
+    need(r(18, "residual_ppb", "peat_sensitivity").spearman <= .1 and r(6, "enhancement_ppb", "peat_sensitivity").spearman < .2, "no positive peat relationship")
+    col = pd.read_csv(T.TABLES / "peat_collinearity.csv").set_index(["station", "pair"])
+    t["J_PEAT_WET_R"] = f"{col.loc[('JMB', 'peat_ppb~wetlands_ppb'), 'spearman']:.2f}"
+    need(col.loc[("JMB", "peat_ppb~wetlands_ppb"), "spearman"] > .6, "peat and wetland responses overlap")
+    t.update(J_PEAT_FREF=f"{P.F_REF * 1000:.0f}", J_PEAT_FACTOR=f"{P.PEAT_PRIOR_FACTOR:.0f}")
+    par = pd.read_csv(T.TABLES / "peat_inversion_parameters.csv"); ev = pd.read_csv(T.TABLES / "peat_inversion_evaluation.csv")
+    def prow(case, name): return par[par.case.eq(case) & par.parameter.eq(name)].iloc[0]
+    def flux(case):
+        q = prow(case, "peat"); return f"{q.flux_nmol_m2_s_median:.1f} (95% interval {q.flux_nmol_m2_s_q025:.2f}–{q.flux_nmol_m2_s_q975:.1f})"
+    def erow(case, split): return ev[ev.case.eq(case) & ev.split.eq(split) & ev.station.eq("JMB")].iloc[0]
+    prior = P.F_REF * 1000
+    scr, allh = prow("screened_sector_peat", "peat"), prow("all_hours_sector_peat", "peat")
+    t.update(J_PEAT_SCR_FLUX=flux("screened_sector_peat"), J_PEAT_ALL_FLUX=flux("all_hours_sector_peat"),
+             J_PEAT_ALL_FRAC=f"{allh.transport_fraction:.2f}", J_PEAT_ALL_NIGHT_RMSE=f"{erow('all_hours_sector_peat', 'jmb_18utc_all').rmse_ppb:.0f}")
+    need(scr.flux_nmol_m2_s_median < prior and scr.flux_nmol_m2_s_q975 / scr.flux_nmol_m2_s_q025 > 100, "screened peat flux below prior and wide")
+    need(allh.transport_fraction >= .95 and abs(allh.flux_nmol_m2_s_median / prior - 1) < .25, "all-hours fit stays at cap and returns prior")
+    for name in ("fuel_near", "other_near", "wetlands"):
+        need(abs(prow("screened_sector_peat", name)["median"] - prow("screened_sector", name)["median"]) < .05, f"{name} unchanged by peat")
+    need(abs(erow("screened_sector_peat", "evaluation").rmse_ppb - erow("screened_sector", "evaluation").rmse_ppb) < 5, "withheld error unchanged by peat")
+    need(par.dropna(subset=["rhat"]).rhat.max() <= 1.01 and par.dropna(subset=["ess"]).ess.min() >= 1000, "peat fits converged")
+    labels = {"screened_sector": "Jambi 18 UTC excluded, no peat", "screened_sector_peat": "Jambi 18 UTC excluded, with peat",
+              "all_hours_sector_peat": "All hours, with peat", "jmb_all_hours_peat": "Jambi only, all hours, with peat"}
+    rows = []
+    for case, label in labels.items():
+        c = par[par.case.eq(case)].set_index("parameter")
+        near = (f"fuel {interval(c.loc['fuel_near'])}; other {interval(c.loc['other_near'])}" if "fuel_near" in c.index else interval(c.loc["anthro_near"]))
+        peat = (f"{c.loc['peat', 'flux_nmol_m2_s_median']:.1f} ({c.loc['peat', 'flux_nmol_m2_s_q025']:.2f}–{c.loc['peat', 'flux_nmol_m2_s_q975']:.1f})"
+                if "peat" in c.index else "not included")
+        held, night = erow(case, "evaluation"), erow(case, "jmb_18utc_all")
+        rows.append([label, f"{c.transport_fraction.dropna().iloc[0]:.2f}", peat, near, interval(c.loc["wetlands"]),
+                     f"{held.rmse_ppb:.1f} (n={int(held.n)})", f"{night.rmse_ppb:.0f} ({night.bias_ppb:+.0f})"])
+    t["J_PEAT_TABLE"] = ("**Table 9. Inversion with a uniform methane flux over mapped peat.** Posterior medians with 95% credible intervals; peat flux in nmol m⁻² s⁻¹. The Jambi withheld RMSE is on withheld days used by each case; the 18 UTC column is RMSE with mean bias (model minus observation) over every usable Jambi 18 UTC hour, in ppb. The Jambi-only case has no sector split.\n\n"
+        + markdown_table(["Case", "Transport fraction", "Peat flux", "Near field", "Wetlands", "Jambi withheld RMSE (ppb)", "Jambi 18 UTC RMSE (bias)"], rows))
+    # ---- seasons
+    sig = pd.read_csv(T.ROOT / "outputs/p_ch4_co2_signature.csv").set_index("station").loc["JMB"]
+    nights = pd.read_csv(T.TABLES / "jambi_night_rates.csv", parse_dates=["night"])
+    need(int(nights.accumulating.sum()) == int(sig.n_nights), "nightly method reproduces the published count")
+    t.update(J_F85_RATIO=f"{sig.ch4_per_co2_ppb_ppm:.2f}", J_F85_NIGHTS=str(int(sig.n_nights)),
+             J_SEASON_FIRST=f"{nights.night.min():%-d %B %Y}", J_SEASON_LAST=f"{nights.night.max():%-d %B %Y}")
+    summ = pd.read_csv(T.TABLES / "jambi_night_season_summary.csv").set_index(["definition", "season"])
+    diff = pd.read_csv(T.TABLES / "jambi_night_season_difference.csv").set_index(["definition", "quantity"])
+    def di(definition, q, digits):
+        x = diff.loc[(definition, q)]; return f"{x.dry_minus_wet:+.{digits}f}, 95% interval {x.ci_lo:.{digits}f} to {x.ci_hi:.{digits}f}"
+    t.update(J_CO2_WET=f"{summ.loc[('main', 'wet'), 'co2_rate_ppm_h_median']:.2f}", J_CO2_DRY=f"{summ.loc[('main', 'dry'), 'co2_rate_ppm_h_median']:.2f}",
+             J_CH4_WET=f"{summ.loc[('main', 'wet'), 'ch4_rate_ppb_h_median']:.1f}", J_CH4_DRY=f"{summ.loc[('main', 'dry'), 'ch4_rate_ppb_h_median']:.1f}",
+             J_RATIO_WET=f"{summ.loc[('main', 'wet'), 'ratio_ppb_per_ppm_median']:.2f}", J_RATIO_DRY=f"{summ.loc[('main', 'dry'), 'ratio_ppb_per_ppm_median']:.2f}",
+             J_CO2_DIFF=di("main", "co2_rate_ppm_h", 2), J_CO2_DIFF_CORE=di("core", "co2_rate_ppm_h", 2),
+             J_CH4_DIFF=di("main", "ch4_rate_ppb_h", 1), J_RATIO_DIFF=di("main", "ratio_ppb_per_ppm", 2),
+             J_WET_NIGHTS=str(int(summ.loc[("main", "wet"), "accumulating_nights"])), J_DRY_NIGHTS=str(int(summ.loc[("main", "dry"), "accumulating_nights"])),
+             J_WET_WEEKS=str(int(summ.loc[("main", "wet"), "weeks"])), J_DRY_WEEKS=str(int(summ.loc[("main", "dry"), "weeks"])))
+    for d in ("main", "core"):
+        need(diff.loc[(d, "co2_rate_ppm_h"), "ci_lo"] > 0, f"CO2 dry-season rise resolved ({d})")
+    for q in ("ch4_rate_ppb_h", "ratio_ppb_per_ppm"):
+        x = diff.loc[("main", q)]; need(x.dry_minus_wet < 0 and x.ci_lo < 0 < x.ci_hi, f"{q} lower when dry but unresolved")
+    names = {"co2_rate_ppm_h": ("CO₂ build-up (ppm h⁻¹)", 2), "ch4_rate_ppb_h": ("CH₄ build-up (ppb h⁻¹)", 1), "ratio_ppb_per_ppm": ("CH₄:CO₂ ratio (ppb ppm⁻¹)", 2)}
+    rows = []
+    for q, (label, dg) in names.items():
+        w, dr = summ.loc[("main", "wet")], summ.loc[("main", "dry")]
+        cell = lambda row: f"{row[q + '_median']:.{dg}f} ({row[q + '_ci_lo']:.{dg}f} to {row[q + '_ci_hi']:.{dg}f})"
+        m, c = diff.loc[("main", q)], diff.loc[("core", q)]
+        rows.append([label, cell(w), cell(dr), f"{m.dry_minus_wet:+.{dg}f} ({m.ci_lo:.{dg}f} to {m.ci_hi:.{dg}f})",
+                     f"{c.dry_minus_wet:+.{dg}f} ({c.ci_lo:.{dg}f} to {c.ci_hi:.{dg}f})"])
+    t["J_SEASON_TABLE"] = (f"**Table 10. Nocturnal build-up at Jambi by season, full record.** Medians over nights on which CO₂ rises by more than 0.2 ppm per hour ({t['J_WET_NIGHTS']} wet-season nights in {t['J_WET_WEEKS']} weeks, {t['J_DRY_NIGHTS']} dry-season nights in {t['J_DRY_WEEKS']} weeks), with 95% week-block bootstrap intervals. Wet is November–April and dry May–October; the core columns compare December–March with June–September.\n\n"
+        + markdown_table(["Quantity", "Wet, median (95%)", "Dry, median (95%)", "Dry minus wet (95%)", "Core dry minus wet (95%)"], rows))
+    by = pd.read_csv(T.TABLES / "jambi_night_season_by_year.csv", parse_dates=["first", "last"])
+    full = by[by.accumulating >= 50]
+    need(full.loc[full.ratio_median.idxmin(), "season_label"] == "dry 2024" and full.loc[full.ratio_median.idxmax(), "season_label"] == "dry 2025", "dry seasons are the extremes")
+    need(full.loc[full.ch4_rate_median.idxmin(), "season_label"] == "dry 2024" and full.loc[full.ch4_rate_median.idxmax(), "season_label"] == "dry 2025", "dry seasons are the methane extremes")
+    rows = [[r.season_label.replace("wet", "Wet").replace("dry", "Dry"), f"{r.first:%-d %b %Y} to {r.last:%-d %b %Y}", str(int(r.accumulating)),
+             f"{r.ratio_median:.2f}", f"{r.ch4_rate_median:.1f}", f"{r.co2_rate_median:.2f}"] for r in full.itertuples()]
+    t["J_SEASON_YEAR_TABLE"] = ("**Table 11. Nocturnal build-up at Jambi by individual season.** Medians over accumulating nights; the incomplete 2025/26 wet season is omitted.\n\n"
+        + markdown_table(["Season", "Nights from", "Accumulating nights", "CH₄:CO₂ (ppb ppm⁻¹)", "CH₄ build-up (ppb h⁻¹)", "CO₂ build-up (ppm h⁻¹)"], rows))
+    alt = pd.read_csv(T.TABLES / "jambi_night_season_alt_method.csv").set_index(["definition", "season"]).loc[("main", "dry_minus_wet")]
+    need(alt["median"] > 0 and alt.ci_lo < 0 < alt.ci_hi, "second method opposite in sign and unresolved")
+    t["J_ALT_DIFF"] = f"{alt['median']:+.2f}, 95% interval {alt.ci_lo:.2f} to {alt.ci_hi:.2f}"
+    return t
+
+
 def build(write: bool = True) -> str:
     template = TEMPLATE.read_text()
     tok = tokens()
+    tok.update(peat_tokens())
     missing = set(re.findall(r"\{\{([A-Z0-9_]+)\}\}", template)) - tok.keys()
     if missing:
         raise ValueError(f"missing tokens {sorted(missing)}")

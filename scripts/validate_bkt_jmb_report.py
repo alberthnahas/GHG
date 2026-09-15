@@ -44,8 +44,16 @@ def validate() -> dict:
     check("methane variable present: False" in data.loc["CarbonTracker CT-NRT.v2025-1 molefractions", "note"], "CT-NRT carries no methane field")
     check(not data.loc["CarbonTracker-CH4 2025 molefractions (used)", "covers_2024"], "CarbonTracker-CH4 boundary ends before 2024")
 
+    prox = pd.read_csv(T.TABLES / "peat_proximity.csv")
+    check((prox.polygons == 1277).all(), "peat layer polygon count recorded")
+    nights = pd.read_csv(T.TABLES / "jambi_night_rates.csv")
+    sig = pd.read_csv(ROOT / "outputs/p_ch4_co2_signature.csv").set_index("station").loc["JMB"]
+    acc = nights[nights.accumulating]
+    check(len(acc) == int(sig.n_nights) and abs(acc.ratio_ppb_per_ppm.median() - sig.ch4_per_co2_ppb_ppm) < .005, "season test reproduces the published Jambi nocturnal ratio")
+    peat = pd.read_csv(T.TABLES / "peat_inversion_parameters.csv").dropna(subset=["rhat"])
+    check(peat.rhat.max() <= 1.01 and peat.ess.min() >= 1000, "peat inversion convergence")
     figs = sorted((T.OUT / "figures").glob("figure_T*.png"))
-    check(len(figs) == 4, "four two-receptor figures")
+    check(len(figs) == 5, "five two-receptor figures")
     for path in figs:
         with Image.open(path) as im:
             check(im.width >= 2100 and im.height >= 1100, f"publication raster size {path.stem}")

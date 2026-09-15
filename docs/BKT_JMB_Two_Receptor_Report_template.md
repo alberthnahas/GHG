@@ -6,19 +6,21 @@ Bukit Kototabang (BKT) observes methane at 865 m in the highlands of western Sum
 
 The Jambi night record cannot be used as it stands. At 18 UTC (01 WIB) the observed enhancement at Jambi averages {{J_JMB_18_ENH}} ± {{J_JMB_18_SD}} ppb under a model mixing depth of {{J_JMB_18_PBLH}} m, and fitting those hours drives the transport-error fraction to its cap of {{J_FRAC_JOINT}}, which returns every multiplier toward the prior. With Jambi 18 UTC hours excluded, the joint fit scales anthropogenic emissions within 500 km of either tower to {{J_S_NEAR}}, those beyond 500 km to {{J_S_FAR}} and wetlands to {{J_S_WET}} (posterior medians with 95% intervals). Separating the EDGAR fuel-exploitation sector gives {{J_SEC_FUEL}} for fuel exploitation and {{J_SEC_OTHER}} for all other anthropogenic sources within 500 km. {{J_SCREENED_VERDICT}} The withheld RMSE is {{J_SB_RMSE}} ppb at BKT and {{J_SJ_RMSE}} ppb at Jambi, against {{J_SB_BG}} and {{J_SJ_BG}} ppb for the refitted background; the Jambi comparison rests on {{J_SJ_N}} withheld hours.
 
+Jambi sits among mapped peat, {{J_JMB_PEAT_KM}} km from the tower, and an earlier network assessment attributed its large nocturnal CO₂ efflux to drained peat. The two-receptor results do not attribute its methane to that peat. Night methane does not rise with the peat in the footprint, and a peat flux term is neither needed by the daytime data nor able to explain the nights. Across the full Jambi record the dry season speeds the nocturnal CO₂ build-up, while the methane response is unresolved and differs between years.
+
 The BKT-only fit for December 2023 ({{J_B_NEAR}}, {{J_B_FAR}}, {{J_B_WET}}) and the September 2019 BKT inversion agree in direction: {{J_2019_VERDICT}} The EDGAR_2025_GHG release supplies monthly methane fluxes for 2023 and 2024 and would remove the proxy inventory year used here. CarbonTracker CT-NRT.v2025-1 is a carbon dioxide product and supplies no methane boundary, and no CarbonTracker-CH₄ release reaches 2024, so the larger October–December 2024 overlap cannot yet be inverted with the same boundary treatment. All results are regional adjustment factors under a stated error model, conditional on parameterized transport and the assumed inlet heights.
 
 ## 1. Scientific question and scope
 
 The September 2019 BKT inversion showed that one highland tower can scale regional methane priors when the transport error model is consistent with the residuals. A single receptor cannot, however, separate a source near the tower from a transport error near the tower, and BKT sits above much of the lowland where Sumatran methane is emitted. A second tower on the lowland should sample different air, see different sources, and test whether one set of emission multipliers explains both records.
 
-The study asks three questions. Do BKT and Jambi constrain the same emission multipliers? Which Jambi hours can a quarter-degree transport model represent? Which input products would allow the analysis to be extended beyond December 2023? It does not estimate emission totals, resolve individual facilities, or attribute enhancements to single sources.
+The study asks four questions. Do BKT and Jambi constrain the same emission multipliers? Which Jambi hours can a quarter-degree transport model represent? Does Jambi's methane carry a signature of the peat that surrounds it? Which input products would allow the analysis to be extended beyond December 2023? It does not estimate emission totals, resolve individual facilities, or attribute enhancements to single sources.
 
 ## 2. Evidence and data quality
 
 ### 2.1 Joint observation window
 
-BKT and Jambi overlap in two periods of the harmonized hourly archive: late 2023, and October to December 2024 (Table 1). A receptor hour is usable only when both towers have a valid, unflagged methane value at 06 or 18 UTC, the hours used by the earlier BKT inversion. The 2024 overlap is larger, with {{J_BEST_JOINT}} joint hours from {{J_BEST_WINDOW}}, but the CarbonTracker-CH₄ boundary product and the LPJ-MERRA2 wetland product both end in 2023 (Section 5). The analysis therefore uses 24 November to 31 December 2023: {{J_SCHED}} scheduled hours, {{J_BKT_VALID}} valid at BKT, {{J_JMB_VALID}} valid at Jambi and {{J_JOINT}} valid at both.
+BKT and Jambi overlap in two periods of the harmonized hourly archive: late 2023, and October to December 2024 (Table 1). A receptor hour is usable only when both towers have a valid, unflagged methane value at 06 or 18 UTC, the hours used by the earlier BKT inversion. The 2024 overlap is larger, with {{J_BEST_JOINT}} joint hours from {{J_BEST_WINDOW}}, but the CarbonTracker-CH₄ boundary product and the LPJ-MERRA2 wetland product both end in 2023 (Section 6). The analysis therefore uses 24 November to 31 December 2023: {{J_SCHED}} scheduled hours, {{J_BKT_VALID}} valid at BKT, {{J_JMB_VALID}} valid at Jambi and {{J_JOINT}} valid at both.
 
 {{J_WINDOW_TABLE}}
 
@@ -112,7 +114,51 @@ The transfer test is the stricter one, because the Jambi hours are predicted by 
 
 **Figure 4.** Observed methane with the screened joint posterior median and 95% parameter interval, the prior inventory and the endpoint background at BKT (a) and Jambi (b), for hours that pass the retention screen. Filled circles were fitted, open circles were withheld, and crosses mark Jambi 18 UTC hours excluded from fitting.
 
-## 5. Input products for extending the analysis
+## 5. Peatland and seasonal tests at Jambi
+
+### 5.1 The hypothesis
+
+The network assessment of the five stations concluded that the surface around Jambi is drained peat, from its large nocturnal CO₂ efflux and a respiration maximum at the end of the dry season, and it reported a nocturnal CH₄:CO₂ accumulation ratio of {{J_F85_RATIO}} ppb per ppm over {{J_F85_NIGHTS}} nights. That conclusion rests on carbon dioxide. If the surrounding peat is also the source of Jambi's methane, two signatures should follow. Methane on a given night should rise with the amount of peat in the footprint, and the methane build-up relative to carbon dioxide should change between wet and dry seasons as the water table moves. This section tests both and adds peat as an explicit source in the inversion.
+
+### 5.2 Peat around the two towers
+
+The peat layer contains {{J_PEAT_POLYS}} polygons covering about {{J_PEAT_AREA}} km² of Indonesia. It carries no attributes, so its source, date and drainage status are unknown, and it is used here only as a map of where peat soils lie. It was rasterized to the fraction of each 0.25° footprint cell covered by peat. Mapped peat lies {{J_JMB_PEAT_KM}} km from the Jambi tower and covers {{J_JMB_PEAT10}}% of the land within 10 km, {{J_JMB_PEAT25}}% within 25 km and {{J_JMB_PEAT50}}% within 50 km (Figure 5). BKT is {{J_BKT_PEAT_KM}} km from the nearest mapped peat, with {{J_BKT_PEAT100}}% peat within 100 km. Peat carries {{J_PEAT_SHARE_JMB_06}}% of Jambi's surface sensitivity at 06 UTC and {{J_PEAT_SHARE_JMB_18}}% at 18 UTC, and the peat-weighted sensitivity within 50 km of the tower is {{J_PEAT50_RATIO}} times larger at night. The Jambi night hours therefore sample peat more than any other receptor hours in this study.
+
+![Peat exposure and seasonal night build-up at Jambi.]({{J_FIG}}/figure_T05_peat_season.png)
+
+**Figure 5.** Peat area fraction on the 0.25° grid around Jambi, with the cells holding 50% and 80% of the mean 18 UTC footprint and 25 km and 50 km circles (a); observed enhancement against peat-weighted sensitivity for usable Jambi hours (b); and the dry-minus-wet difference in nocturnal CO₂ build-up, CH₄ build-up and their ratio, as a percentage of the wet-season median with 95% week-block bootstrap intervals, for two season definitions (c).
+
+### 5.3 Peat exposure and the night enhancement
+
+Across the {{J_PEAT_N18}} usable Jambi nights, the observed enhancement does not rise with peat-weighted sensitivity: the rank correlation is {{J_PEAT_R18}}, and {{J_PEAT50_R18}} for peat within 50 km of the tower. The unexplained night residual of the screened sector fit shows no positive relationship with peat exposure either, with a rank correlation of {{J_PEAT_RES_R18}}. At 06 UTC the rank correlation is {{J_PEAT_R06}} over {{J_PEAT_N06}} hours. The nights with the most peat in the footprint are not the nights with the most methane.
+
+The test is weak in two ways. With {{J_PEAT_N18}} nights, only a strong relationship would be detected. Near Jambi the peat response is also largely the wetland response: across usable Jambi hours the rank correlation between the peat-weighted increment and the LPJ-MERRA2 wetland increment is {{J_PEAT_WET_R}}, because the wetland model places its Sumatran emissions on the same lowland.
+
+### 5.4 A peat flux term in the inversion
+
+A peat component was added as a uniform methane flux over mapped peat, with a log-normal prior centered on {{J_PEAT_FREF}} nmol m⁻² s⁻¹ and a factor-of-{{J_PEAT_FACTOR}} standard deviation, wide because no local measurement constrains it. All other settings follow Section 3.3 (Table 9).
+
+{{J_PEAT_TABLE}}
+
+With Jambi 18 UTC hours excluded, the data move the peat flux below its prior, to {{J_PEAT_SCR_FLUX}} nmol m⁻² s⁻¹, an interval spanning more than two orders of magnitude, while the other multipliers and the withheld error are essentially unchanged. The daytime record neither needs nor resolves a peat source. When the night hours are fitted, the transport-error fraction stays at {{J_PEAT_ALL_FRAC}}, the peat flux returns to its prior at {{J_PEAT_ALL_FLUX}} nmol m⁻² s⁻¹, and the error at Jambi 18 UTC remains {{J_PEAT_ALL_NIGHT_RMSE}} ppb. A uniform peat source does not explain the night accumulation.
+
+### 5.5 Wet and dry seasons
+
+The seasonal test uses the full Jambi record from {{J_SEASON_FIRST}} to {{J_SEASON_LAST}}, not only the inversion window, and the nocturnal method of the network assessment. On each night the CO₂ and CH₄ slopes are fitted over 20:00–02:00 local time when at least five hours are present, and their ratio is kept on nights when CO₂ rises by more than 0.2 ppm per hour. The method reproduces the published ratio exactly: {{J_F85_RATIO}} ppb per ppm over {{J_F85_NIGHTS}} nights. The wet season is November to April and the dry season May to October, as in the network assessment; a core definition compares December–March with June–September. Intervals come from resampling whole weeks, so that consecutive nights under the same weather do not count as independent evidence (Table 10).
+
+{{J_SEASON_TABLE}}
+
+Nocturnal CO₂ build-up is faster in the dry season, {{J_CO2_DRY}} against {{J_CO2_WET}} ppm per hour, and the difference is resolved under both definitions: {{J_CO2_DIFF}} ppm per hour, and {{J_CO2_DIFF_CORE}} for the core months. This is consistent with the dry-season respiration maximum of the network assessment. Methane build-up is slower in the dry season, {{J_CH4_DRY}} against {{J_CH4_WET}} ppb per hour, and the CH₄:CO₂ ratio falls from {{J_RATIO_WET}} to {{J_RATIO_DRY}} ppb per ppm, but both differences have intervals that include zero: {{J_CH4_DIFF}} ppb per hour for methane and {{J_RATIO_DIFF}} for the ratio.
+
+{{J_SEASON_YEAR_TABLE}}
+
+The individual seasons do not agree (Table 11). The 2024 dry season has the lowest ratio and the slowest methane build-up of the record, and the 2025 dry season has the highest of both, with the two wet seasons between them. The within-night regression method of the network assessment, which keeps only nights with a tight CH₄–CO₂ relationship, gives a dry-minus-wet ratio difference of {{J_ALT_DIFF}} ppb per ppm, opposite in sign and also unresolved. Seasons here are calendar months. Without rainfall or water-table data, an anomalously wet 2025 dry season cannot be excluded.
+
+### 5.6 What the tests show
+
+The map confirms that Jambi is a peat site and BKT is not, and the seasonal CO₂ result supports the dry-season respiration signal on which the drained-peat interpretation rests. Neither test attributes Jambi's methane to peat. Night methane does not follow peat exposure, an explicit peat flux is not needed by the daytime data and does not explain the nights, and the seasonal methane response is unresolved and inconsistent between years. The tests cannot exclude a peat methane source either: peat and wetland patterns overlap near the tower, the night transport is poorly represented, and the record holds only two dry seasons.
+
+## 6. Input products for extending the analysis
 
 The October–December 2024 overlap would more than double the joint record. Three candidate products were checked against the inputs this design requires (Table 7).
 
@@ -124,9 +170,11 @@ The October–December 2024 overlap would more than double the joint record. Thr
 
 **CarbonTracker-CH₄.** The 2025 release, used here, ends on {{J_CT25_LAST}}; the 2023 release ends on {{J_CT23_LAST}}, and the unversioned tree ends on {{J_LEGACY_LAST}} [8]. No release covers 2024. A December 2024 methane inversion therefore still needs a methane boundary, a 2024 wetland field (LPJ-MERRA2 is listed through 2023) and a 2024 fire field. Until a methane reanalysis covering 2024 is identified and checked, the only option within this design would be to drop the modeled boundary and let per-tower offsets and trends carry the background, which weakens the separation of sources from background that this report depends on.
 
-## 6. Interpretation and limitations
+## 7. Interpretation and limitations
 
 A lowland tower adds information about emissions only through the hours a transport model can represent. With Jambi daytime hours alone, one set of multipliers explains both towers better than a refitted background, the near-field anthropogenic reduction is clearest in the fuel-exploitation sector, and the wetland multiplier is similar in the BKT-only fit, the screened joint fit and the 2019 BKT inversion. Jambi night hours, the most striking part of its record, are outside the model, and fitting them flattens the likelihood for both records.
+
+The peatland tests narrow the Jambi methane question without answering it. The tower sits in a peat landscape, and its dry-season CO₂ behavior supports drained peat as a CO₂ source. Its methane is explained neither by where the peat lies, nor by a uniform peat flux, nor by season, so the local night methane source remains unidentified among peat, wetland, and the fuel-exploitation and waste sources that the inventory places near the tower.
 
 The main limitations follow.
 
@@ -136,6 +184,8 @@ The main limitations follow.
 - The boundary assimilates BKT but not Jambi, so the two backgrounds are not equally independent of the observations they explain.
 - Convective transport is parameterized by the driver's mixing depth only; the archive carries no convective fluxes.
 - Multipliers scale fixed spatial patterns. A multiplier below one can reflect a misplaced source as well as an over-estimated one.
+- The peat layer has no recorded source, date or drainage status, and a uniform flux over mapped peat is a simple representation of a patchy source.
+- Seasons are defined by calendar month, and the record holds two dry seasons that behave differently.
 
 ## References
 
@@ -167,3 +217,5 @@ The main limitations follow.
 | Reduced chi-square | Mean squared whitened residual at the posterior mode; one indicates a covariance consistent with the residuals |
 | Withheld days | Complete days designated before fitting and never used by the optimizer |
 | Transfer test | Prediction of one tower's hours with multipliers fitted at the other tower only |
+| Peat-weighted sensitivity | Footprint sensitivity summed over cells in proportion to their mapped peat fraction |
+| Week-block bootstrap | Resampling of whole weeks of nights to estimate an interval without treating consecutive nights as independent |
