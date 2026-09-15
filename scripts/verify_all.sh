@@ -76,6 +76,12 @@ latex_gate() {
             "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_domain_budget_extension.py >/dev/null || return 1
             echo "   domain-correction and prior-budget extension checks passed"
         fi
+        if [[ -f outputs/hysplit/two_receptor/tables/inversion_parameters.csv ]]; then
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py outputs/BKT_JMB_Two_Receptor_Report.pdf >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_bkt_two_receptor >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_jmb_report.py >/dev/null || return 1
+            echo "   two-receptor report checks passed"
+        fi
     elif [[ -f outputs/hysplit/refinement/analysis/metrics.json ]]; then
         python3 scripts/validate_bkt_footprint_report.py --refinement >/dev/null || return 1
         echo "   revised BKT report and independent numerical checks passed"

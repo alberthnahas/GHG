@@ -226,3 +226,47 @@ inversion queued behind the 156-run ensemble
 case: GFS 120 h fire CO 738 ppb (139 % of observed), ERA5 1031 ppb (194 %),
 fire CO2 3.80 and 5.52 ppm; methane agrees bit for bit with the earlier
 methane-only extract. Lower-bound wording removed from the forward report.
+
+## Two-receptor extension: BKT and Jambi (planned 14 September 2026)
+
+The user asked for a run using both BKT and Jambi (JMB) data, with both inlets
+taken as 100 m above ground. `scripts/a84_bkt_jmb_two_receptor.py` implements
+it; `outputs/hysplit/two_receptor/tables/window_scan.csv` records the window
+choice.
+
+- Joint window: 24 November to 31 December 2023, receptors at 06 and 18 UTC.
+  49 joint valid hours (21 at 06 UTC, 28 at 18 UTC), 12 held out as complete
+  days (every fourth joint day). December 2024 has 60 joint hours but no
+  CarbonTracker-CH4 boundary (the 2025 release ends in 2023) and no LPJ
+  wetlands for 2024, so it is documented and not run.
+- Runs: 2 receptors x 49 hours x 3 seeds x 2000 particles, 120 h backward,
+  wide 60 x 100 degree grid centred on each receptor, 1,000 m extra layer,
+  294 runs. Run directories `outputs/hysplit/two_receptor/runs/<code>_s<seed>/`.
+- Meteorology: GFS 0.25 degree wide crop (50 to 160 E, 40 S to 30 N) for
+  19 November to 31 December 2023 through the NOAA READY extraction,
+  43 daily files of about 346 MB (about 15 GB) into
+  `data/hysplit/gfs0p25/two_receptor_wide/`.
+- Priors: EDGAR v8.0 monthly 2022 (latest year; proxy for 2023), LPJ-MERRA2
+  wetlands 2023, climatological termites, geological and soil sinks, fire from
+  the CarbonTracker-CH4 2025 pyrogenic monthly posterior (GFED5.1 daily ends in
+  2022; no cropland partition). Flux grids are built per receptor because the
+  footprint grid is centred on each receptor.
+- Boundary: CarbonTracker-CH4 2025 daily mole fractions at 120 h endpoints,
+  43 files of 36 MB.
+- Inversion: shared four-component multipliers with per-station offset and
+  trend nuisance terms; block covariance (correlated within a station,
+  independent between stations); tuned transport fraction by reduced
+  chi-square; cases joint, bkt_only, jmb_only, bkt_to_jmb and jmb_to_bkt
+  (cross-site prediction).
+
+Downloads wait for the user's authorization (about 19 GB in total).
+
+2026-09-15: two-receptor campaign complete (294 runs, 19.2 h, no failures),
+operator, inversion (nine cases including Jambi-night screening and a
+fuel-exploitation sector split), figures T01 to T04 (`a85`), dataset availability probe (`a87`) and the
+report `BKT_JMB_Two_Receptor_Report.md` built by `a86`. Headline: Jambi 18 UTC hours are
+out-of-model (mixing depth 35 m, enhancement 220 ppb); screened joint
+multipliers 0.29 near, 0.56 far, 0.40 wetlands; fuel exploitation 0.32.
+Dataset check: EDGAR_2025_GHG covers 2023 and 2024; CT-NRT.v2025-1 is CO2
+only; no CarbonTracker-CH4 release reaches 2024, so December 2024 remains
+blocked for methane.

@@ -90,6 +90,16 @@ DOCS = {
         subtitle="Numerical completeness, meteorological drivers, benchmark tests and quality assurance behind the two reports",
         title_footer="Technical record; contains no source attribution.",
         toc=True),
+    "BKT_JMB_Two_Receptor_Report": dict(
+        title="Methane emissions seen from two Sumatran towers",
+        running_title="BKT and Jambi methane inversion, November–December 2023",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        title_meta="Bukit Kototabang and Jambi, Indonesia | 24 November–31 December 2023",
+        title_no_hyphenation=True,
+        subtitle="A two-receptor HYSPLIT-STILT ensemble inversion, the limits of a lowland night record, and the inputs needed to extend it",
+        title_footer=("Regional adjustment factors under a stated error model, conditional on parameterized transport and an assumed "
+                      "100 m inlet at both towers; not independently verified emission totals."),
+        toc=True),
 }
 
 # --------------------------------------------------------------------------
