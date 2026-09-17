@@ -279,3 +279,118 @@ follow peat exposure; a uniform peat flux term is unconstrained and does not
 explain nights. Full-record nocturnal test reproduces Finding 85 (524 nights,
 3.04): dry-season CO2 build-up faster and resolved; CH4 build-up and ratio
 lower but unresolved, with dry 2024 and dry 2025 at opposite extremes.
+
+2026-09-15: CO2 two-receptor inversion (`scripts/a89_bkt_jmb_co2.py`, tables
+`outputs/hysplit/two_receptor/tables/co2_*.csv`) on the same 294 footprints.
+Inputs: CT-NRT.v2025-1 three-hourly fluxes and CO2 boundary, EDGAR_2025_GHG
+monthly fossil CO2 for 2023 (2.7 GB, authorized). Biosphere split by local
+solar time into daytime and nighttime terms because the CT-NRT optimized flux
+has an inverted day-night cycle over both tower cells from 25 November to
+1 December. A CO2-only spike screen removes two Jambi hours; the 26 November
+13 WIB spike (+79 ppm, CH4 and CO flat) alone drove a far-fossil factor of 56.
+Findings: night CO2 is outside the model at both towers (observed +20 ppm at
+BKT and +45 ppm at Jambi against priors of 6 and 7 ppm), and every fit with
+night hours pushes the transport fraction to its cap. The daytime-only fit is
+consistent (fraction 0.27), fossil factors are unconstrained, and biosphere
+factors are 0.42 and 0.34 and stable under leave-one-out, but the posterior
+has no skill (correlation near zero) and fits all daytime hours worse than
+the background alone. Not committed.
+
+2026-09-15: improved CO2 model (`scripts/a90_bkt_jmb_co2_improved.py`, tables
+`co2_improved_*.csv`, `co2_diagnostic_biosphere_summary.csv`,
+`co2_afternoon_observations.csv`, `co2_mixing_screen.csv`). Three changes,
+tested separately on daytime receptors: (1) an independent diagnostic
+biosphere prior from GFS de-accumulated shortwave (uptake) and 2 m temperature
+with Q10 1.5 (respiration) on MODIS vegetated land, declared scale 3,000 g C
+m-2 yr-1, balanced per cell; (2) 12-14 WIB observation means with a
+neighbour-median CO2-only spike screen; (3) a well-mixed screen dropping
+receptors with GFS mixing depth below 300 m (one BKT hour). Best case
+diag_3h_mixed: Jambi daytime RMSE 3.63 ppm against 4.47 for background only
+(correlation 0.47; 0.07 with the original CT-NRT model); BKT 4.05 against
+3.35, still no skill. BKT-only factors predict Jambi better than its
+background (4.37 against 5.05 ppm). Uptake and respiration factors 0.37 and
+0.35 of the declared scale; fossil still unconstrained. Not committed.
+
+2026-09-15: CO2 improvement experiments (`scripts/a91_bkt_jmb_co2_experiments.py`,
+tables `co2_experiments*_skill.csv`, `*_parameters.csv`,
+`co2_diagnostic_operator_local25.csv`). All variants on the same 27 daytime
+receptors, scored by leave-one-date-out cross-validation (about 20 hours per
+tower) as well as withheld days and transfer. Rounds: net-signal transport
+error, CH4-residual covariate, saturating light, Q10 2, per-tower biosphere
+factors, BKT wide prior, BKT local 25 km removal and split, BKT without
+biosphere terms, CH4-enhancement covariate.
+Out-of-sample result. Jambi: every biosphere variant beats the background;
+best is per-tower biosphere factors with the CH4-residual covariate, RMSE 3.45
+ppm against 4.72 (correlation 0.61; covariate 0.084 ppm per ppb, 0.015 to
+0.157). BKT: no biosphere variant beats the background (4.4 to 5.2 against
+3.56); local 25 km treatments do not help; BKT uptake and respiration shrink
+to about 0.15 under a wide prior. The only BKT gain is the CH4-enhancement
+covariate without biosphere terms, 3.24 against 3.56 (0.032 ppm per ppb,
+-0.006 to 0.068). The BKT-without-biosphere joint fit is invalid as designed:
+one shared transport fraction hits its cap and inflates Jambi errors. Not
+committed.
+
+2026-09-15: per-tower transport fractions and tower-specific covariates
+(`a91` rounds 5a and 5b). With one fraction per tower, dropping BKT biosphere
+terms no longer inflates Jambi errors. Leave-one-date-out RMSE, 100 m runs:
+Jambi biosphere factors with the CH4-residual covariate 3.42 ppm against 4.72
+background (correlation 0.62); BKT background with the CH4-enhancement
+covariate and no biosphere terms 3.39 against 3.63 (correlation 0.27; 0.035
+ppm per ppb, 0.004 to 0.065). BKT with its biosphere terms still 4.63. BKT
+release-height campaign (`scripts/a92_bkt_release_height.py`, runs in
+`outputs/hysplit/two_receptor/runs_bkt_height/`): the 15 scored BKT daytime
+receptors at 150 m and 300 m above GFS ground, three seeds, 90 runs on 14
+workers, started 15 September; round 5b scores the heights when it finishes.
+
+2026-09-15: BKT 300 m release results (`co2_bkt_height_operator.csv`,
+`co2_experiments_round5b_h300_*`). All 45 runs completed and all 15 receptors
+keep their particles. Relative to 100 m, mean integrated sensitivity falls 3%
+(8.60 to 8.35) and modeled uptake 7% (-29.9 to -27.7 ppm). Leave-one-date-out
+RMSE at BKT: biosphere model 4.53 against 4.63 at 100 m (background 3.48);
+background with the CH4-enhancement covariate 3.36 against 3.39. The GFS
+afternoon mixed layer at BKT (median about 760 m) is deeper than either release,
+so release height does not limit BKT CO2 skill. Date-block bootstrap: no BKT
+or Jambi improvement over background is resolved at 95% with 12 to 15 dates.
+
+2026-09-15: release-height campaign complete (90 of 90 runs, 5.7 h, no
+failures) and scored (`co2_experiments_round5b_*`). BKT 150 m: sensitivity
+8.58 against 8.60 at 100 m, uptake -29.5 against -29.9 ppm; 300 m: 8.35 and
+-27.7. Leave-one-date-out RMSE at BKT, biosphere model: 4.63, 4.57, 4.53 at
+100, 150, 300 m (background 3.48 to 3.54); background with CH4-enhancement
+covariate: 3.39, 3.38, 3.36 (background 3.56 to 3.63). Jambi unchanged at 3.42
+to 3.47 against 4.72. Release height is not the limit on BKT daytime CO2; no
+gain over background is resolved at 95% by the date bootstrap. Not committed.
+
+2026-09-17: October to December 2024 CO2 extension complete and scored, and it
+reverses the 2023 reading. Campaign `scripts/a93_bkt_jmb_co2_2024.py`: 94 days
+of GFS 0.25 ARL (restarted once after SSL failures), CT-NRT and EDGAR 2024
+inputs, 63 joint afternoon receptors, 252 runs on 14 workers in 14.0 h with no
+failures, 54 usable dates per tower against 15 in 2023. Two faults were found
+and fixed on the way: the 2024 fossil months were hardcoded to October through
+December while a 120 h back trajectory reaches 29 September, which broke the
+operator after the campaign (months now derive from the footprint span); and
+`receptor_frame` merged the 25 km local operator with an inner join, silently
+dropping every 2024 receptor (now a left join with a row-count guard).
+
+Results (`co2_experiments_round6_*`). The 2023 Jambi gain does not reproduce:
+Jambi leave-one-date-out RMSE 6.25 against 5.56 for the background in 2024,
+where 2023 gave 3.65 against 4.72; combined 5.82 against 5.40. BKT combined
+3.00 against 2.70, and that difference is resolved at 95% by the date-block
+bootstrap (+0.30 ppm, +0.03 to +0.57, 69 dates). The nuisance-only model, which
+keeps the offset, trend and methane covariate but drops every source term,
+beats the full posterior at both towers. The source terms carry no
+out-of-sample information at this footprint resolution.
+
+Robustness (`co2_experiments_round7_*`, `co2_experiments_round8_*`). Fitting an
+offset and trend inside each period, so no straight line spans the ten-month
+gap, moves the out-of-sample error by at most 0.06 ppm and leaves both towers
+worse than their background. Scaling the CT-NRT fire term instead of holding it
+fixed improves the background at Jambi by 0.44 ppm and fits a fire multiplier of
+0.55 (0.20 to 1.21): the fire prior is about twice too strong in the 2024 fire
+season, where it reaches 7.7 ppm at a Jambi receptor against nothing in 2023.
+
+Report `BKT_JMB_CO2_Report` written from these tables
+(`docs/BKT_JMB_CO2_Report_template.md`, `scripts/a95_bkt_jmb_co2_report.py`,
+`scripts/a94_co2_figures.py` figures C01 to C05,
+`scripts/validate_bkt_jmb_co2_report.py` with 66 checks, LaTeX entry and a
+`verify_all.sh` gate). It states the negative result. Not committed.
