@@ -160,8 +160,51 @@ def tokens() -> dict[str, str]:
              J_TR_N=str(int(tr.n)), J_TR_RMSE=f"{tr.rmse_ppb:.1f}", J_TR_BG=f"{trb.rmse_ppb:.1f}", J_TR_PRIOR=f"{tri.rmse_ppb:.1f}",
              J_TR_BIAS=f"{tr.bias_ppb:+.0f}", J_TR_BG_BIAS=f"{trb.bias_ppb:+.0f}", J_TR_PRIOR_BIAS=f"{tri.bias_ppb:+.0f}")
     both = sb.rmse_ppb < sbb.rmse_ppb and sj.rmse_ppb < sjb.rmse_ppb
-    t["J_SCREENED_VERDICT"] = ("The screened joint fit predicts the withheld days better than a refitted background at both receptors." if both else
+    t["J_SCREENED_VERDICT"] = ("On the withheld days the screened joint fit predicts better than a refitted background at both receptors, "
+                               "but that comparison rests on nine hours at BKT and three at Jambi and does not survive cross-validation "
+                               "(Section 4.6)." if both else
                                "The screened joint fit does not beat a refitted background at both receptors.")
+
+    # ---- cross-validated skill: every date used once as a test, not one small withheld split
+    cv = pd.read_csv(T.TABLES / "ch4_cv_skill.csv")
+    cvb = pd.read_csv(T.TABLES / "ch4_cv_bootstrap.csv")
+
+    def cv_rmse(case: str, code: str, model: str) -> float:
+        row = cv[cv.variant.eq(case) & cv.station.eq(code) & cv.model.eq(model)]
+        return float(row.rmse_ppb.iloc[0])
+
+    def cv_boot(case: str, code: str):
+        return cvb[cvb.variant.eq(case) & cvb.station.eq(code)].iloc[0]
+
+    rows = []
+    for case, label in (("joint_screened_sector", "Joint screened, sector split"), ("joint_screened", "Joint, Jambi 18 UTC excluded"),
+                        ("bkt_only", "BKT only"), ("jmb_day", "Jambi daytime only"), ("joint", "Joint, all hours")):
+        for code in ("BKT", "JMB"):
+            if not len(cv[cv.variant.eq(case) & cv.station.eq(code)]):
+                continue
+            r = cv_boot(case, code)
+            rows.append([label, T.STATIONS[code][0], str(int(r.dates)), f"{cv_rmse(case, code, 'posterior'):.1f}",
+                         f"{cv_rmse(case, code, 'background_only'):.1f}",
+                         f"{r.rmse_difference:+.1f} ({r.ci_lo:+.1f} to {r.ci_hi:+.1f})"])
+    t["J_CV_TABLE"] = ("**Table 12. Cross-validated skill, every date used once as a test.** The model is refitted without each date and "
+        "predicts it, so the comparison rests on all of the dates rather than on one withheld split. The difference column is posterior minus "
+        "background with a 95% bootstrap interval over whole dates; negative favours the posterior.\n\n"
+        + markdown_table(["Case", "Receptor", "Dates", "Posterior RMSE (ppb)", "Background RMSE (ppb)", "Difference (ppb)"], rows))
+    head = "joint_screened_sector"
+    gaps = {code: cv_rmse(head, code, "posterior") - cv_rmse(head, code, "background_only") for code in ("BKT", "JMB")}
+    intervals = {code: cv_boot(head, code) for code in ("BKT", "JMB")}
+    resolved = [code for code in ("BKT", "JMB") if intervals[code].ci_lo > 0 or intervals[code].ci_hi < 0]
+    t["J_CV_VERDICT"] = (
+        "Cross-validated, the headline case does not beat its background at both receptors. At "
+        + " and at ".join(
+            f"{T.STATIONS[code][0]} the posterior is {abs(gaps[code]):.1f} ppb {'better' if gaps[code] < 0 else 'worse'} "
+            f"({intervals[code].rmse_difference:+.1f}, 95% interval {intervals[code].ci_lo:+.1f} to {intervals[code].ci_hi:+.1f}, "
+            f"over {int(intervals[code].dates)} dates)" for code in ("BKT", "JMB"))
+        + ". " + ("No interval excludes zero, so neither direction is established."
+                  if not resolved else
+                  "The difference is resolved at " + " and ".join(T.STATIONS[c][0] for c in resolved) + "."))
+    t["J_CV_NOTE"] = (f"The withheld-day comparison in Section 4.4 rests on {int(sb.n)} hours at BKT and {int(sj.n)} at Jambi. "
+                      "Rotating the test over every date instead reverses the Jambi result, which is what a sample that size can do.")
     t["J_TRANSFER_VERDICT"] = ("Transferred multipliers remove most of the prior over-prediction but do not predict Jambi better than its endpoint background without a fitted Jambi offset: "
                                f"RMSE {tr.rmse_ppb:.1f} against {trb.rmse_ppb:.1f} ppb." if tr.rmse_ppb >= trb.rmse_ppb else
                                f"Transferred multipliers predict Jambi better than its endpoint background without a fitted Jambi offset: RMSE {tr.rmse_ppb:.1f} against {trb.rmse_ppb:.1f} ppb.")
