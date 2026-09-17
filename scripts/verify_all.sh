@@ -82,6 +82,12 @@ latex_gate() {
             "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_jmb_report.py >/dev/null || return 1
             echo "   two-receptor report checks passed"
         fi
+        if [[ -f outputs/hysplit/two_receptor/tables/co2_experiments_round6_skill.csv ]]; then
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py outputs/BKT_JMB_CO2_Report.pdf >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_bkt_jmb_co2 tests.test_bkt_jmb_co2_improved tests.test_bkt_jmb_co2_experiments tests.test_bkt_jmb_co2_report >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_jmb_co2_report.py >/dev/null || return 1
+            echo "   carbon dioxide report checks passed"
+        fi
     elif [[ -f outputs/hysplit/refinement/analysis/metrics.json ]]; then
         python3 scripts/validate_bkt_footprint_report.py --refinement >/dev/null || return 1
         echo "   revised BKT report and independent numerical checks passed"

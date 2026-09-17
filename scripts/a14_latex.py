@@ -90,6 +90,16 @@ DOCS = {
         subtitle="Numerical completeness, meteorological drivers, benchmark tests and quality assurance behind the two reports",
         title_footer="Technical record; contains no source attribution.",
         toc=True),
+    "BKT_JMB_CO2_Report": dict(
+        title="Carbon dioxide seen from two Sumatran towers",
+        running_title="BKT and Jambi carbon dioxide inversion, 2023 and 2024",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        title_meta="Bukit Kototabang and Jambi, Indonesia | November--December 2023 and October--December 2024",
+        title_no_hyphenation=True,
+        subtitle="A daytime two-receptor inversion, the biosphere prior it needs, and what a short record can and cannot resolve",
+        title_footer=("Regional adjustment factors on a diagnostic biosphere prior under a stated error model, conditional on parameterized "
+                      "transport and an assumed 100 m inlet at both towers; not independently verified fluxes."),
+        toc=True),
     "BKT_JMB_Two_Receptor_Report": dict(
         title="Methane emissions seen from two Sumatran towers",
         running_title="BKT and Jambi methane inversion, November–December 2023",
