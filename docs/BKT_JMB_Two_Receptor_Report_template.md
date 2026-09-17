@@ -4,7 +4,7 @@
 
 Bukit Kototabang (BKT) observes methane at 865 m in the highlands of western Sumatra; Jambi observes it on the eastern Sumatran lowland at 25 m above sea level. This report asks whether the two records, inverted together, constrain the same regional methane emissions, and what a lowland tower adds to a highland one. The only window in which both towers have valid methane and every model input exists for its own year is 24 November to 31 December 2023. It gives {{J_JOINT}} joint twice-daily receptor hours, of which {{J_HELD}} fall on withheld days. Both inlets are taken at 100 m above ground. The transport operator comes from {{J_RUNS}} five-day HYSPLIT-STILT runs driven by quarter-degree GFS meteorology, three seeds of 2,000 particles at every receptor hour.
 
-The Jambi night record cannot be used as it stands. At 18 UTC (01 WIB) the observed enhancement at Jambi averages {{J_JMB_18_ENH}} ± {{J_JMB_18_SD}} ppb under a model mixing depth of {{J_JMB_18_PBLH}} m, and fitting those hours drives the transport-error fraction to its cap of {{J_FRAC_JOINT}}, which returns every multiplier toward the prior. With Jambi 18 UTC hours excluded, the joint fit scales anthropogenic emissions within 500 km of either tower to {{J_S_NEAR}}, those beyond 500 km to {{J_S_FAR}} and wetlands to {{J_S_WET}} (posterior medians with 95% intervals). Separating the EDGAR fuel-exploitation sector gives {{J_SEC_FUEL}} for fuel exploitation and {{J_SEC_OTHER}} for all other anthropogenic sources within 500 km. {{J_SCREENED_VERDICT}} The withheld RMSE is {{J_SB_RMSE}} ppb at BKT and {{J_SJ_RMSE}} ppb at Jambi, against {{J_SB_BG}} and {{J_SJ_BG}} ppb for the refitted background; the Jambi comparison rests on {{J_SJ_N}} withheld hours.
+The Jambi night record cannot be used as it stands. At 18 UTC (01 WIB) the observed enhancement at Jambi averages {{J_JMB_18_ENH}} ± {{J_JMB_18_SD}} ppb under a model mixing depth of {{J_JMB_18_PBLH}} m, and fitting those hours drives the transport-error fraction to its cap of {{J_FRAC_JOINT}}, which returns every multiplier toward the prior. With Jambi 18 UTC hours excluded, the joint fit scales anthropogenic emissions within 500 km of either tower to {{J_S_NEAR}}, those beyond 500 km to {{J_S_FAR}} and wetlands to {{J_S_WET}} (posterior medians with 95% intervals). Separating the EDGAR fuel-exploitation sector gives {{J_SEC_FUEL}} for fuel exploitation and {{J_SEC_OTHER}} for all other anthropogenic sources within 500 km. {{J_SCREENED_VERDICT}} The withheld RMSE is {{J_SB_RMSE}} ppb at BKT and {{J_SJ_RMSE}} ppb at Jambi, against {{J_SB_BG}} and {{J_SJ_BG}} ppb for the refitted background; the Jambi comparison rests on {{J_SJ_N}} withheld hours. {{J_CV_VERDICT}}
 
 Jambi sits among mapped peat, {{J_JMB_PEAT_KM}} km from the tower, and an earlier network assessment attributed its large nocturnal CO₂ efflux to drained peat. The two-receptor results do not attribute its methane to that peat. Night methane does not rise with the peat in the footprint, and a peat flux term is neither needed by the daytime data nor able to explain the nights. Across the full Jambi record the dry season speeds the nocturnal CO₂ build-up, while the methane response is unresolved and differs between years.
 
@@ -114,6 +114,16 @@ The transfer test is the stricter one, because the Jambi hours are predicted by 
 
 **Figure 4.** Observed methane with the screened joint posterior median and 95% parameter interval, the prior inventory and the endpoint background at BKT (a) and Jambi (b), for hours that pass the retention screen. Filled circles were fitted, open circles were withheld, and crosses mark Jambi 18 UTC hours excluded from fitting.
 
+### 4.6 The same test with every date used once
+
+A withheld split this small tells you less than it appears to. {{J_CV_NOTE}} Refitting the model without each date in turn, and predicting that date, uses every date once as a test and gives a bootstrap interval over dates rather than a single number (Table 12).
+
+{{J_CV_TABLE}}
+
+{{J_CV_VERDICT}}
+
+This does not change the posterior multipliers of Section 4.4, which are what the fit says about the priors given the data and the error model. It changes what can be claimed for them as a predictive model: on this record, one set of multipliers scaled from these priors does not predict an unseen day better than the boundary field with a fitted offset and trend. The same test on the carbon dioxide version of this study reached the same conclusion with four times the sample.
+
 ## 5. Peatland and seasonal tests at Jambi
 
 ### 5.1 The hypothesis
@@ -172,7 +182,7 @@ The October–December 2024 overlap would more than double the joint record. Thr
 
 ## 7. Interpretation and limitations
 
-A lowland tower adds information about emissions only through the hours a transport model can represent. With Jambi daytime hours alone, one set of multipliers explains both towers better than a refitted background, the near-field anthropogenic reduction is clearest in the fuel-exploitation sector, and the wetland multiplier is similar in the BKT-only fit, the screened joint fit and the 2019 BKT inversion. Jambi night hours, the most striking part of its record, are outside the model, and fitting them flattens the likelihood for both records.
+A lowland tower adds information about emissions only through the hours a transport model can represent. With Jambi daytime hours alone one set of multipliers describes both towers, the near-field anthropogenic reduction is clearest in the fuel-exploitation sector, and the wetland multiplier is similar in the BKT-only fit, the screened joint fit and the 2019 BKT inversion; but cross-validation (Section 4.6) shows those multipliers do not predict an unseen day better than a fitted background, so they are a statement about the priors under this error model rather than a validated predictive model. Jambi night hours, the most striking part of its record, are outside the model, and fitting them flattens the likelihood for both records.
 
 The peatland tests narrow the Jambi methane question without answering it. The tower sits in a peat landscape, and its dry-season CO₂ behavior supports drained peat as a CO₂ source. Its methane is explained neither by where the peat lies, nor by a uniform peat flux, nor by season, so the local night methane source remains unidentified among peat, wetland, and the fuel-exploitation and waste sources that the inventory places near the tower.
 

@@ -50,6 +50,16 @@ def validate() -> dict:
     sig = pd.read_csv(ROOT / "outputs/p_ch4_co2_signature.csv").set_index("station").loc["JMB"]
     acc = nights[nights.accumulating]
     check(len(acc) == int(sig.n_nights) and abs(acc.ratio_ppb_per_ppm.median() - sig.ch4_per_co2_ppb_ppm) < .005, "season test reproduces the published Jambi nocturnal ratio")
+    cv = pd.read_csv(T.TABLES / "ch4_cv_skill.csv")
+    boot = pd.read_csv(T.TABLES / "ch4_cv_bootstrap.csv")
+    check(set(cv.model) == {"posterior", "background_only", "prior_inventory"}, "cross-validated skill carries all three models")
+    head = cv[cv.variant.eq("joint_screened_sector")]
+    check(int(boot[boot.variant.eq("joint_screened_sector") & boot.station.eq("BKT")].dates.iloc[0]) >= 20,
+          "cross-validation rotates over the whole record, not one withheld split")
+    beaten = [code for code in ("BKT", "JMB")
+              if float(head[head.station.eq(code) & head.model.eq("posterior")].rmse_ppb.iloc[0])
+              < float(head[head.station.eq(code) & head.model.eq("background_only")].rmse_ppb.iloc[0])]
+    check(len(beaten) < 2, "the report does not claim cross-validated skill at both receptors")
     peat = pd.read_csv(T.TABLES / "peat_inversion_parameters.csv").dropna(subset=["rhat"])
     check(peat.rhat.max() <= 1.01 and peat.ess.min() >= 1000, "peat inversion convergence")
     figs = sorted((T.OUT / "figures").glob("figure_T*.png"))

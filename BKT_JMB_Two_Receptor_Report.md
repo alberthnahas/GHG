@@ -4,7 +4,7 @@
 
 Bukit Kototabang (BKT) observes methane at 865 m in the highlands of western Sumatra; Jambi observes it on the eastern Sumatran lowland at 25 m above sea level. This report asks whether the two records, inverted together, constrain the same regional methane emissions, and what a lowland tower adds to a highland one. The only window in which both towers have valid methane and every model input exists for its own year is 24 November to 31 December 2023. It gives 49 joint twice-daily receptor hours, of which 12 fall on withheld days. Both inlets are taken at 100 m above ground. The transport operator comes from 294 five-day HYSPLIT-STILT runs driven by quarter-degree GFS meteorology, three seeds of 2,000 particles at every receptor hour.
 
-The Jambi night record cannot be used as it stands. At 18 UTC (01 WIB) the observed enhancement at Jambi averages 220 ± 111 ppb under a model mixing depth of 39 m, and fitting those hours drives the transport-error fraction to its cap of 1.00, which returns every multiplier toward the prior. With Jambi 18 UTC hours excluded, the joint fit scales anthropogenic emissions within 500 km of either tower to 0.29 (0.12–0.56), those beyond 500 km to 0.56 (0.21–1.12) and wetlands to 0.40 (0.16–0.76) (posterior medians with 95% intervals). Separating the EDGAR fuel-exploitation sector gives 0.32 (0.12–0.63) for fuel exploitation and 0.48 (0.17–1.06) for all other anthropogenic sources within 500 km. The screened joint fit predicts the withheld days better than a refitted background at both receptors. The withheld RMSE is 34.1 ppb at BKT and 32.1 ppb at Jambi, against 42.1 and 36.9 ppb for the refitted background; the Jambi comparison rests on 3 withheld hours.
+The Jambi night record cannot be used as it stands. At 18 UTC (01 WIB) the observed enhancement at Jambi averages 220 ± 111 ppb under a model mixing depth of 39 m, and fitting those hours drives the transport-error fraction to its cap of 1.00, which returns every multiplier toward the prior. With Jambi 18 UTC hours excluded, the joint fit scales anthropogenic emissions within 500 km of either tower to 0.29 (0.12–0.56), those beyond 500 km to 0.56 (0.21–1.12) and wetlands to 0.40 (0.16–0.76) (posterior medians with 95% intervals). Separating the EDGAR fuel-exploitation sector gives 0.32 (0.12–0.63) for fuel exploitation and 0.48 (0.17–1.06) for all other anthropogenic sources within 500 km. On the withheld days the screened joint fit predicts better than a refitted background at both receptors, but that comparison rests on nine hours at BKT and three at Jambi and does not survive cross-validation (Section 4.6). The withheld RMSE is 34.1 ppb at BKT and 32.1 ppb at Jambi, against 42.1 and 36.9 ppb for the refitted background; the Jambi comparison rests on 3 withheld hours. Cross-validated, the headline case does not beat its background at both receptors. At Bukit Kototabang the posterior is 2.0 ppb better (-2.0, 95% interval -13.1 to +9.1, over 26 dates) and at Jambi the posterior is 14.0 ppb worse (+14.0, 95% interval -9.9 to +38.0, over 13 dates). No interval excludes zero, so neither direction is established.
 
 Jambi sits among mapped peat, 4.2 km from the tower, and an earlier network assessment attributed its large nocturnal CO₂ efflux to drained peat. The two-receptor results do not attribute its methane to that peat. Night methane does not rise with the peat in the footprint, and a peat flux term is neither needed by the daytime data nor able to explain the nights. Across the full Jambi record the dry season speeds the nocturnal CO₂ build-up, while the methane response is unresolved and differs between years.
 
@@ -144,7 +144,7 @@ The September 2019 BKT inversion gave 0.37 (0.15–0.70), 0.24 (0.10–0.45) and
 
 ### 4.5 Prediction on hours the fit did not use
 
-The screened joint fit predicts the withheld days better than a refitted background at both receptors. The screened joint posterior predicts the withheld days with RMSE 34.1 ppb at BKT (9 hours) and 32.1 ppb at Jambi (3 hours), against 42.1 and 36.9 ppb for the refitted background (Table 6, Figure 4). Fitting all Jambi hours raises the BKT withheld RMSE to 45.3 ppb, against 50.1 ppb for the background refitted under that fit's covariance.
+On the withheld days the screened joint fit predicts better than a refitted background at both receptors, but that comparison rests on nine hours at BKT and three at Jambi and does not survive cross-validation (Section 4.6). The screened joint posterior predicts the withheld days with RMSE 34.1 ppb at BKT (9 hours) and 32.1 ppb at Jambi (3 hours), against 42.1 and 36.9 ppb for the refitted background (Table 6, Figure 4). Fitting all Jambi hours raises the BKT withheld RMSE to 45.3 ppb, against 50.1 ppb for the background refitted under that fit's covariance.
 
 **Table 6. Evaluation on hours the fit did not use: RMSE in ppb with mean bias in parentheses.** Withheld hours are complete days fixed before fitting; the last row applies multipliers fitted at BKT alone to every usable Jambi 06 UTC hour. Background only refits the per-receptor offset and trend with source multipliers at zero; prior inventory uses unit multipliers.
 
@@ -164,6 +164,27 @@ The transfer test is the stricter one, because the Jambi hours are predicted by 
 ![Observed and modeled methane at both towers.](outputs/hysplit/two_receptor/figures/figure_T02_series.png)
 
 **Figure 4.** Observed methane with the screened joint posterior median and 95% parameter interval, the prior inventory and the endpoint background at BKT (a) and Jambi (b), for hours that pass the retention screen. Filled circles were fitted, open circles were withheld, and crosses mark Jambi 18 UTC hours excluded from fitting.
+
+### 4.6 The same test with every date used once
+
+A withheld split this small tells you less than it appears to. The withheld-day comparison in Section 4.4 rests on 9 hours at BKT and 3 at Jambi. Rotating the test over every date instead reverses the Jambi result, which is what a sample that size can do. Refitting the model without each date in turn, and predicting that date, uses every date once as a test and gives a bootstrap interval over dates rather than a single number (Table 7).
+
+**Table 7. Cross-validated skill, every date used once as a test.** The model is refitted without each date and predicts it, so the comparison rests on all of the dates rather than on one withheld split. The difference column is posterior minus background with a 95% bootstrap interval over whole dates; negative favours the posterior.
+
+| Case | Receptor | Dates | Posterior RMSE (ppb) | Background RMSE (ppb) | Difference (ppb) |
+| --- | --- | --- | --- | --- | --- |
+| Joint screened, sector split | Bukit Kototabang | 26 | 40.4 | 42.4 | -2.0 (-13.1 to +9.1) |
+| Joint screened, sector split | Jambi | 13 | 50.9 | 36.9 | +14.0 (-9.9 to +38.0) |
+| Joint, Jambi 18 UTC excluded | Bukit Kototabang | 26 | 39.3 | 42.2 | -2.9 (-13.9 to +7.4) |
+| Joint, Jambi 18 UTC excluded | Jambi | 13 | 46.6 | 36.7 | +9.9 (-9.9 to +29.6) |
+| BKT only | Bukit Kototabang | 26 | 41.9 | 42.8 | -1.0 (-12.8 to +10.7) |
+| Jambi daytime only | Jambi | 13 | 47.2 | 35.6 | +11.6 (-7.9 to +32.6) |
+| Joint, all hours | Bukit Kototabang | 26 | 64.4 | 49.6 | +14.8 (-2.2 to +31.9) |
+| Joint, all hours | Jambi | 22 | 161.6 | 166.8 | -5.2 (-39.8 to +33.5) |
+
+Cross-validated, the headline case does not beat its background at both receptors. At Bukit Kototabang the posterior is 2.0 ppb better (-2.0, 95% interval -13.1 to +9.1, over 26 dates) and at Jambi the posterior is 14.0 ppb worse (+14.0, 95% interval -9.9 to +38.0, over 13 dates). No interval excludes zero, so neither direction is established.
+
+This does not change the posterior multipliers of Section 4.4, which are what the fit says about the priors given the data and the error model. It changes what can be claimed for them as a predictive model: on this record, one set of multipliers scaled from these priors does not predict an unseen day better than the boundary field with a fitted offset and trend. The same test on the carbon dioxide version of this study reached the same conclusion with four times the sample.
 
 ## 5. Peatland and seasonal tests at Jambi
 
@@ -187,9 +208,9 @@ The test is weak in two ways. With 22 nights, only a strong relationship would b
 
 ### 5.4 A peat flux term in the inversion
 
-A peat component was added as a uniform methane flux over mapped peat, with a log-normal prior centered on 10 nmol m⁻² s⁻¹ and a factor-of-10 standard deviation, wide because no local measurement constrains it. All other settings follow Section 3.3 (Table 7).
+A peat component was added as a uniform methane flux over mapped peat, with a log-normal prior centered on 10 nmol m⁻² s⁻¹ and a factor-of-10 standard deviation, wide because no local measurement constrains it. All other settings follow Section 3.3 (Table 8).
 
-**Table 7. Inversion with a uniform methane flux over mapped peat.** Posterior medians with 95% credible intervals; peat flux in nmol m⁻² s⁻¹. The Jambi withheld RMSE is on withheld days used by each case; the 18 UTC column is RMSE with mean bias (model minus observation) over every usable Jambi 18 UTC hour, in ppb. The Jambi-only case has no sector split.
+**Table 8. Inversion with a uniform methane flux over mapped peat.** Posterior medians with 95% credible intervals; peat flux in nmol m⁻² s⁻¹. The Jambi withheld RMSE is on withheld days used by each case; the 18 UTC column is RMSE with mean bias (model minus observation) over every usable Jambi 18 UTC hour, in ppb. The Jambi-only case has no sector split.
 
 | Case | Transport fraction | Peat flux | Near field | Wetlands | Jambi withheld RMSE (ppb) | Jambi 18 UTC RMSE (bias) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -202,9 +223,9 @@ With Jambi 18 UTC hours excluded, the data move the peat flux below its prior, t
 
 ### 5.5 Wet and dry seasons
 
-The seasonal test uses the full Jambi record from 24 November 2023 to 3 December 2025, not only the inversion window, and the nocturnal method of the network assessment. On each night the CO₂ and CH₄ slopes are fitted over 20:00–02:00 local time when at least five hours are present, and their ratio is kept on nights when CO₂ rises by more than 0.2 ppm per hour. The method reproduces the published ratio exactly: 3.04 ppb per ppm over 524 nights. The wet season is November to April and the dry season May to October, as in the network assessment; a core definition compares December–March with June–September. Intervals come from resampling whole weeks, so that consecutive nights under the same weather do not count as independent evidence (Table 8).
+The seasonal test uses the full Jambi record from 24 November 2023 to 3 December 2025, not only the inversion window, and the nocturnal method of the network assessment. On each night the CO₂ and CH₄ slopes are fitted over 20:00–02:00 local time when at least five hours are present, and their ratio is kept on nights when CO₂ rises by more than 0.2 ppm per hour. The method reproduces the published ratio exactly: 3.04 ppb per ppm over 524 nights. The wet season is November to April and the dry season May to October, as in the network assessment; a core definition compares December–March with June–September. Intervals come from resampling whole weeks, so that consecutive nights under the same weather do not count as independent evidence (Table 9).
 
-**Table 8. Nocturnal build-up at Jambi by season, full record.** Medians over nights on which CO₂ rises by more than 0.2 ppm per hour (257 wet-season nights in 52 weeks, 267 dry-season nights in 51 weeks), with 95% week-block bootstrap intervals. Wet is November–April and dry May–October; the core columns compare December–March with June–September.
+**Table 9. Nocturnal build-up at Jambi by season, full record.** Medians over nights on which CO₂ rises by more than 0.2 ppm per hour (257 wet-season nights in 52 weeks, 267 dry-season nights in 51 weeks), with 95% week-block bootstrap intervals. Wet is November–April and dry May–October; the core columns compare December–March with June–September.
 
 | Quantity | Wet, median (95%) | Dry, median (95%) | Dry minus wet (95%) | Core dry minus wet (95%) |
 | --- | --- | --- | --- | --- |
@@ -214,7 +235,7 @@ The seasonal test uses the full Jambi record from 24 November 2023 to 3 December
 
 Nocturnal CO₂ build-up is faster in the dry season, 4.14 against 3.21 ppm per hour, and the difference is resolved under both definitions: +0.93, 95% interval 0.09 to 1.42 ppm per hour, and +0.84, 95% interval 0.09 to 1.48 for the core months. This is consistent with the dry-season respiration maximum of the network assessment. Methane build-up is slower in the dry season, 10.8 against 12.4 ppb per hour, and the CH₄:CO₂ ratio falls from 3.06 to 2.84 ppb per ppm, but both differences have intervals that include zero: -1.6, 95% interval -6.2 to 5.0 ppb per hour for methane and -0.22, 95% interval -1.62 to 0.86 for the ratio.
 
-**Table 9. Nocturnal build-up at Jambi by individual season.** Medians over accumulating nights; the incomplete 2025/26 wet season is omitted.
+**Table 10. Nocturnal build-up at Jambi by individual season.** Medians over accumulating nights; the incomplete 2025/26 wet season is omitted.
 
 | Season | Nights from | Accumulating nights | CH₄:CO₂ (ppb ppm⁻¹) | CH₄ build-up (ppb h⁻¹) | CO₂ build-up (ppm h⁻¹) |
 | --- | --- | --- | --- | --- | --- |
@@ -223,7 +244,7 @@ Nocturnal CO₂ build-up is faster in the dry season, 4.14 against 3.21 ppm per 
 | Wet 2024/25 | 15 Nov 2024 to 30 Apr 2025 | 129 | 3.06 | 10.1 | 3.05 |
 | Dry 2025 | 1 May 2025 to 31 Oct 2025 | 124 | 3.95 | 19.7 | 4.57 |
 
-The individual seasons do not agree (Table 9). The 2024 dry season has the lowest ratio and the slowest methane build-up of the record, and the 2025 dry season has the highest of both, with the two wet seasons between them. The within-night regression method of the network assessment, which keeps only nights with a tight CH₄–CO₂ relationship, gives a dry-minus-wet ratio difference of +0.52, 95% interval -0.37 to 1.62 ppb per ppm, opposite in sign and also unresolved. Seasons here are calendar months. Without rainfall or water-table data, an anomalously wet 2025 dry season cannot be excluded.
+The individual seasons do not agree (Table 10). The 2024 dry season has the lowest ratio and the slowest methane build-up of the record, and the 2025 dry season has the highest of both, with the two wet seasons between them. The within-night regression method of the network assessment, which keeps only nights with a tight CH₄–CO₂ relationship, gives a dry-minus-wet ratio difference of +0.52, 95% interval -0.37 to 1.62 ppb per ppm, opposite in sign and also unresolved. Seasons here are calendar months. Without rainfall or water-table data, an anomalously wet 2025 dry season cannot be excluded.
 
 ### 5.6 What the tests show
 
@@ -231,9 +252,9 @@ The map confirms that Jambi is a peat site and BKT is not, and the seasonal CO�
 
 ## 6. Input products for extending the analysis
 
-The October–December 2024 overlap would more than double the joint record. Three candidate products were checked against the inputs this design requires (Table 10).
+The October–December 2024 overlap would more than double the joint record. Three candidate products were checked against the inputs this design requires (Table 11).
 
-**Table 10. Coverage of candidate input products, checked 2026-09-15.** Directory listings, HTTP headers, zip central directories and netCDF headers only; no data arrays were transferred. A product covers a December when it contains that month.
+**Table 11. Coverage of candidate input products, checked 2026-09-15.** Directory listings, HTTP headers, zip central directories and netCDF headers only; no data arrays were transferred. A product covers a December when it contains that month.
 
 | Product | Species | Role | Available period | Covers Dec 2023 | Covers Dec 2024 |
 | --- | --- | --- | --- | --- | --- |
@@ -255,7 +276,7 @@ The October–December 2024 overlap would more than double the joint record. Thr
 
 ## 7. Interpretation and limitations
 
-A lowland tower adds information about emissions only through the hours a transport model can represent. With Jambi daytime hours alone, one set of multipliers explains both towers better than a refitted background, the near-field anthropogenic reduction is clearest in the fuel-exploitation sector, and the wetland multiplier is similar in the BKT-only fit, the screened joint fit and the 2019 BKT inversion. Jambi night hours, the most striking part of its record, are outside the model, and fitting them flattens the likelihood for both records.
+A lowland tower adds information about emissions only through the hours a transport model can represent. With Jambi daytime hours alone one set of multipliers describes both towers, the near-field anthropogenic reduction is clearest in the fuel-exploitation sector, and the wetland multiplier is similar in the BKT-only fit, the screened joint fit and the 2019 BKT inversion; but cross-validation (Section 4.6) shows those multipliers do not predict an unseen day better than a fitted background, so they are a statement about the priors under this error model rather than a validated predictive model. Jambi night hours, the most striking part of its record, are outside the model, and fitting them flattens the likelihood for both records.
 
 The peatland tests narrow the Jambi methane question without answering it. The tower sits in a peat landscape, and its dry-season CO₂ behavior supports drained peat as a CO₂ source. Its methane is explained neither by where the peat lies, nor by a uniform peat flux, nor by season, so the local night methane source remains unidentified among peat, wetland, and the fuel-exploitation and waste sources that the inventory places near the tower.
 
@@ -287,7 +308,7 @@ The main limitations follow.
 
 ## Appendix. Terms used in this report
 
-**Table 11. Terms used in this report.**
+**Table 12. Terms used in this report.**
 
 | Term | Meaning |
 |---|---|
