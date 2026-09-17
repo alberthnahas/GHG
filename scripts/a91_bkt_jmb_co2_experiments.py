@@ -409,25 +409,13 @@ BOOTSTRAP_SEED, BOOTSTRAP_REPS = 20260915, 5000
 def cv_difference_bootstrap(predictions: pd.DataFrame) -> pd.DataFrame:
     """Paired bootstrap over dates of the cross-validated RMSE difference, posterior minus plain background.
 
-    Dates are resampled whole, so hours on the same day stay together; the number
-    of distinct dates is the effective sample size reported with each interval.
+    The resampling itself lives in a96 so that carbon dioxide and methane treat
+    dates identically; this wrapper keeps the ppm column names of the CO2 tables.
     """
-    rng = np.random.default_rng(BOOTSTRAP_SEED)
-    rows = []
-    for (variant, code), g in predictions.groupby(["variant", "station"]):
-        g = g.assign(date=g.time_utc.dt.normalize())
-        dates = g.date.unique()
-        e_post = (g.posterior_ppm - g.observed_ppm).to_numpy(); e_plain = (g.plain_background_ppm - g.observed_ppm).to_numpy()
-        index = [np.flatnonzero(g.date.to_numpy() == d) for d in dates]
-        diffs = np.empty(BOOTSTRAP_REPS)
-        for i in range(BOOTSTRAP_REPS):
-            take = np.concatenate([index[j] for j in rng.integers(0, len(dates), len(dates))])
-            diffs[i] = np.sqrt(np.mean(e_post[take] ** 2)) - np.sqrt(np.mean(e_plain[take] ** 2))
-        observed = np.sqrt(np.mean(e_post ** 2)) - np.sqrt(np.mean(e_plain ** 2))
-        rows.append(dict(variant=variant, station=code, hours=len(g), dates=len(dates), rmse_difference_ppm=float(observed),
-                         ci_lo=float(np.percentile(diffs, 2.5)), ci_hi=float(np.percentile(diffs, 97.5)),
-                         fraction_posterior_better=float((diffs < 0).mean())))
-    return pd.DataFrame(rows)
+    import a96_cross_validated_scoring as S
+    table = S.date_block_bootstrap(predictions, "posterior_ppm", "plain_background_ppm", "observed_ppm",
+                                   reps=BOOTSTRAP_REPS, seed=BOOTSTRAP_SEED)
+    return table.rename(columns={"rmse_difference": "rmse_difference_ppm"})
 
 
 def score(result: dict, label: str, stations=("BKT", "JMB"), split_mask_name: str | None = None) -> list[dict]:
