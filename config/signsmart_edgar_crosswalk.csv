@@ -1,0 +1,13 @@
+ipcc_code,description,edgar_sectors,usable
+1A1,Energy industries,POWER_INDUSTRY,True
+1A2,Manufacturing industries and construction,IND_COMBUSTION,True
+1A3,Transport,TRANSPORT,True
+1A4,"Other sectors, buildings and small combustion",BUILDINGS,True
+1A,"Fuel combustion, all",POWER_INDUSTRY;IND_COMBUSTION;TRANSPORT;BUILDINGS,True
+1B,Fugitive emissions from fuels,FUEL_EXPLOITATION,True
+1,"Energy, all",POWER_INDUSTRY;IND_COMBUSTION;TRANSPORT;BUILDINGS;FUEL_EXPLOITATION,True
+2,Industrial processes and product use,IND_PROCESSES,True
+3A,Livestock,AGRICULTURE,True
+3C,"Aggregate sources on land, agriculture",AGRICULTURE,True
+3B,"Land: EDGAR excludes land use and forestry, so no pattern exists",,False
+4,Waste,WASTE,True
