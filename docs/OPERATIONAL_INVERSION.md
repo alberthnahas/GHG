@@ -96,23 +96,39 @@ per gas, the factor applies inside the province only, and the province total
 afterwards equals the reported total by construction. Every factor is written to
 a ledger with its source.
 
-## Three refusals, built in
+## The refusals, and what answers them now
 
-**Land use is refused.** EDGAR excludes land use, land-use change and forestry,
-so there is no EDGAR pattern to carry an Indonesian FOLU total. In Indonesia
-that is the largest and most variable term. The crosswalk refuses IPCC 3B rather
-than spreading peat and forest emissions over power stations and roads. FOLU
-needs its own proxy, and the peatland layer already used in the methane work is
-the obvious candidate.
+Each refusal existed because something was genuinely missing. Each now has a
+component, and each answer is recorded in the ledger rather than applied
+silently.
 
-**Carbon-dioxide equivalent is not mass.** A total in Gg CO2e cannot enter a
-methane prior without a stated global warming potential; the wrong horizon is a
-silent error of tens of percent. The contract requires an explicit `gwp` column
-whenever the unit is CO2e.
+**Land use now has its own proxy** (`a101_folu_proxy.py`). EDGAR excludes land
+use, so IPCC 3B is still never scaled onto it. Instead it is placed on a pattern
+built for it, from two processes that behave differently: drained peat, as the
+Indonesian peatland extent weighted by the land cover that implies how deeply it
+is drained, and fire, as GFED burned carbon split by whether it burned over
+peat. Over Sumatra, 41.9% of burned carbon falls on peat.
 
-**A zero pattern cannot be scaled.** If EDGAR puts no emission of a sector in a
-province, no factor can put the reported total there. That province is refused
-and listed.
+The absolute magnitude is deliberately left out. Emission factors for drained
+tropical peat are contested: Murdiyarso et al. (PNAS 2024) report 8.13 to 80.77
+Mg CO2 per hectare per year across land covers and water tables, a spread of
+ten. Rather than pick a number, the proxy carries a normalised pattern and
+SIGN-SMART supplies the magnitude, which is the same division of labour every
+other sector already uses. Categories 3B, 3B1 (drainage) and 3B2 (fire) are
+available, and the land-cover weights are relative, stated and editable.
+
+**Carbon-dioxide equivalent converts against a stated horizon.** A total in Gg
+CO2e still cannot enter a methane prior with an unstated potential, because the
+wrong horizon is a silent error of tens of percent. It can now be converted by
+naming one: `--gwp-set AR6`, `AR5` or `AR4` fills the potential, and the horizon
+used is appended to that row's source so the choice travels with the number.
+
+**A zero pattern has a last resort.** If EDGAR puts no emission of a sector in a
+province, no factor can place the reported total there. The default is still to
+refuse and list it. With `--fallback`, the total is spread evenly over the
+province instead, and the ledger marks that row `fallback_even_spread`. An even
+spread is worse than a real pattern and better than dropping a reported total,
+and it is never silent.
 
 ## Validation
 
@@ -154,3 +170,93 @@ python3 scripts/a100_local_inventory.py influence --gas CO2 --year 2023
 The required columns are `region_level, region_name, ipcc_code, sector_name,
 gas, year, value, unit, source`, plus `gwp` when the unit is CO2e. Province
 names are matched without regard to case or spacing.
+
+
+# Where a better inventory actually helps
+
+Localising is work, and it should go where it changes an answer.
+`a102_prior_audit.py` decomposes the modelled signal at the towers by component
+and asks of each whether a national inventory reports it at all. The shares are
+covariance shares, so they sum to the whole signal rather than to more than it.
+
+| Gas | Component | Share of the modelled signal | In a national inventory |
+| --- | --- | --- | --- |
+| CO2 | biosphere, BKT | 52.8% | no |
+| CO2 | biosphere, Jambi | 42.3% | no |
+| CO2 | fossil within 500 km | 5.1% | yes |
+| CO2 | fossil beyond | 0.5% | yes |
+| CH4 | anthropogenic within 500 km | 64.2% | yes |
+| CH4 | anthropogenic beyond | 18.6% | yes |
+| CH4 | natural wetlands | 18.6% | no |
+| CH4 | fire | 0.6% | partly, through FOLU |
+
+**The answer is asymmetric, and it should change what is asked of KLH.** A
+national inventory can reach 82.8% of the methane signal and 5.6% of the carbon
+dioxide signal. Nineteen twentieths of what the towers see in carbon dioxide is
+the terrestrial biosphere, which no national inventory reports, however good the
+export.
+
+So the SIGN-SMART effort should be prioritised for methane. For carbon dioxide
+the binding constraint is a biosphere prior, not an emission inventory, and
+localising fossil emissions will move that gas very little whatever the quality
+of the data.
+
+Combined with the province influence table, the request that buys the most is:
+methane, for Sumatera Barat, Riau, Jambi and Sumatera Selatan, for the energy,
+fugitive, agriculture and waste categories, plus land use if it can be separated
+into drainage and fire.
+
+## Running it
+
+```bash
+python3 scripts/a101_folu_proxy.py build --bounds 94 -12 142 7 --resolution 0.1
+python3 scripts/a101_folu_proxy.py weights
+python3 scripts/a102_prior_audit.py audit
+python3 scripts/a100_local_inventory.py localise --export signsmart.csv --gas CH4 --year 2022 \
+    --gwp-set AR6 --folu-proxy outputs/inventory/folu_proxy_indonesia.nc
+```
+
+## Sources
+
+- Murdiyarso et al., Refining greenhouse gas emission factors for Indonesian
+  peatlands and mangroves, PNAS 2024, for the drained-peat range carried here.
+- IPCC 2013 Wetlands Supplement, for the gain-loss approach Indonesia applies to
+  organic soils. Its Tier 1 default table was not retrieved for this build, so
+  no value is quoted from it.
+- SIGN-SMART reports at national, provincial and district level. Its sector
+  naming, gases and units are not stated on its public pages, so the contract
+  requires them to be declared rather than assumed.
+
+
+# Reading a real export, and where a language model is allowed
+
+The engine wants an IPCC code. A real SIGN-SMART export carries Indonesian
+sector names written by whoever filled the form. `a103_sector_matching.py` maps
+them, rules first:
+
+| Label | Mapped to |
+| --- | --- |
+| Pembangkitan Listrik | 1A1 |
+| Industri Pengolahan | 1A2 |
+| Transportasi Darat | 1A3 |
+| Emisi Fugitif Migas | 1B |
+| Peternakan Sapi Perah | 3A |
+| Lahan Gambut Terdrainase | 3B1 |
+| Kebakaran Hutan dan Lahan | 3B2 |
+| Pengelolaan Limbah Padat Domestik | 4 |
+
+The keyword table is deterministic, offline and auditable, and it resolves the
+common wordings. A name it cannot resolve is reported, never guessed.
+
+TypeSafe's Jev is wired in for the tail only: a typed choice over the IPCC
+categories with a probability, consulted solely for names the rules missed, only
+when `TYPESAFE_API_KEY` is set, and applied only above a stated threshold. The
+method and the confidence travel with every mapping.
+
+**It is deliberately kept out of everything else.** The inversion, the readiness
+gates, the mass conservation and the tracer ratios are numerical and must be
+recomputable exactly by anyone who doubts them. Putting a probabilistic judgment
+inside any of those would trade auditability for nothing, because a threshold
+already does the job exactly. The one place semantic understanding genuinely
+helps is reading free text at the ingestion boundary, so that is the only place
+it is used.

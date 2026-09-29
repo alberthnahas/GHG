@@ -52,6 +52,7 @@ EDGAR = {"CO2": ROOT / "data/bkt_sources/edgar_2025", "CH4": ROOT / "data/bkt_so
 OUT = ROOT / "outputs/inventory"
 CONFIG = ROOT / "config"
 CONTRACT_COLUMNS = ["region_level", "region_name", "ipcc_code", "sector_name", "gas", "year", "value", "unit", "source"]
+FOLU_COMPONENT_NAMES = ("peat_drainage", "peat_fire", "nonpeat_fire")
 UNITS = {"Gg": 1e6, "t": 1e3, "kg": 1.0}          # to kilograms of the gas
 CO2E_UNITS = {"Gg CO2e": 1e6, "t CO2e": 1e3}
 SECONDS_PER_YEAR = 365.25 * 86400
@@ -69,10 +70,23 @@ CROSSWALK = {
     "2": (["IND_PROCESSES"], "Industrial processes and product use"),
     "3A": (["AGRICULTURE"], "Livestock"),
     "3C": (["AGRICULTURE"], "Aggregate sources on land, agriculture"),
-    "3B": ([], "Land: EDGAR excludes land use and forestry, so no pattern exists"),
+    "3B": ([], "Land, all: EDGAR has no pattern; carried by the FOLU proxy (a101)"),
+    "3B1": ([], "Land, peat drainage: carried by the FOLU proxy layer peat_drainage"),
+    "3B2": ([], "Land, fire: carried by the FOLU proxy layers peat_fire and nonpeat_fire"),
     "4": (["WASTE"], "Waste"),
 }
 REFUSED = {code for code, (sectors, _) in CROSSWALK.items() if not sectors}
+# FOLU categories carry no EDGAR pattern but do have one of their own (a101).
+FOLU_PROXY = {"3B": ("peat_drainage", "peat_fire", "nonpeat_fire"),
+              "3B1": ("peat_drainage",),
+              "3B2": ("peat_fire", "nonpeat_fire")}
+# GWP100 sets, so a total in carbon-dioxide equivalent can be converted with a
+# stated horizon instead of being refused outright.
+GWP_SETS = {
+    "AR6": {"CH4": 27.2, "CH4_FOSSIL": 29.8, "N2O": 273.0},
+    "AR5": {"CH4": 28.0, "CH4_FOSSIL": 30.0, "N2O": 265.0},
+    "AR4": {"CH4": 25.0, "CH4_FOSSIL": 25.0, "N2O": 298.0},
+}
 
 
 # ------------------------------------------------------------------ inputs
@@ -139,8 +153,8 @@ def subset(field: xr.DataArray, bounds: tuple[float, float, float, float]) -> xr
 
 # ------------------------------------------------------------ the contract
 
-def read_export(path: Path) -> pd.DataFrame:
-    """Read a SIGN-SMART export and refuse anything that cannot be used safely."""
+def read_export(path: Path, gwp_set: str | None = None, folu_proxy: Path | None = None) -> pd.DataFrame:
+    """Read a SIGN-SMART export and refuse only what cannot be made safe."""
     table = pd.read_csv(path)
     missing = [c for c in CONTRACT_COLUMNS if c not in table.columns]
     if missing:
@@ -153,15 +167,34 @@ def read_export(path: Path) -> pd.DataFrame:
     refused = table[table.ipcc_code.isin(REFUSED)]
     if len(refused):
         codes = sorted(set(refused.ipcc_code))
-        raise ValueError(f"Categories {codes} have no EDGAR counterpart and must not be scaled onto it. "
-                         f"{CROSSWALK[codes[0]][1]}. Remove them from the export, or give them their own proxy.")
+        carried = [c for c in codes if c in FOLU_PROXY]
+        if carried and folu_proxy is None:
+            raise ValueError(f"Categories {carried} need the FOLU proxy: build it with a101 and pass --folu-proxy. "
+                             "They have no EDGAR pattern and must never be scaled onto one.")
+        orphan = [c for c in codes if c not in FOLU_PROXY]
+        if orphan:
+            raise ValueError(f"Categories {orphan} have no pattern at all. {CROSSWALK[orphan[0]][1]}")
     bad = table[~table.unit.isin(list(UNITS) + list(CO2E_UNITS))]
     if len(bad):
         raise ValueError(f"Unsupported units {sorted(set(bad.unit))}; use one of {sorted(UNITS) + sorted(CO2E_UNITS)}")
     equivalent = table[table.unit.isin(CO2E_UNITS)]
-    if len(equivalent) and ("gwp" not in table.columns or equivalent.gwp.isna().any()):
-        raise ValueError("A total in carbon-dioxide equivalent needs an explicit gwp column: converting CO2e to a gas "
-                         "mass with an unstated global warming potential is a silent error of tens of percent")
+    if len(equivalent):
+        if "gwp" not in table.columns:
+            table["gwp"] = np.nan
+        missing = table.unit.isin(CO2E_UNITS) & table.gwp.isna()
+        if missing.any():
+            if gwp_set is None:
+                raise ValueError("A total in carbon-dioxide equivalent needs a global warming potential: give a gwp "
+                                 f"column, or choose a stated horizon with --gwp-set from {sorted(GWP_SETS)}. "
+                                 "Converting CO2e with an unstated potential is a silent error of tens of percent")
+            if gwp_set not in GWP_SETS:
+                raise ValueError(f"Unknown gwp set {gwp_set!r}; choose from {sorted(GWP_SETS)}")
+            values = GWP_SETS[gwp_set]
+            unknown_gas = sorted(set(table.loc[missing, "gas"]) - set(values))
+            if unknown_gas:
+                raise ValueError(f"{gwp_set} has no potential for {unknown_gas}")
+            table.loc[missing, "gwp"] = table.loc[missing, "gas"].map(values)
+            table.loc[missing, "source"] = table.loc[missing, "source"].astype(str) + f" (GWP100 {gwp_set})"
     if (table.value < 0).any():
         raise ValueError("Negative totals: a removal cannot be represented by scaling a positive EDGAR pattern")
     return table
@@ -194,12 +227,18 @@ def template() -> None:
     print(f"Categories refused by design: {sorted(REFUSED)} ({CROSSWALK['3B'][1]})")
 
 
-def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, float, float], label: str) -> dict:
-    table = read_export(export)
+def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, float, float], label: str,
+             gwp_set: str | None = None, folu_proxy: Path | None = None, fallback: bool = False) -> dict:
+    table = read_export(export, gwp_set, folu_proxy)
     table = table[(table.gas == gas) & (table.year == year) & table.value.notna()]
     if table.empty:
         raise ValueError(f"No filled {gas} rows for {year} in {export}")
+    folu_rows = table[table.ipcc_code.isin(FOLU_PROXY)]
+    table = table[~table.ipcc_code.isin(FOLU_PROXY)]
     sectors = sorted({s for code in table.ipcc_code for s in CROSSWALK[code][0]})
+    if not sectors:
+        raise ValueError("This export places nothing on the EDGAR grid; include at least one energy, industry, "
+                         "agriculture or waste category alongside any land-use rows")
     fields = {s: subset(sector_field(gas, s, year), bounds) for s in sectors}
     reference = fields[sectors[0]]
     lat, lon = reference.lat.values, reference.lon.values
@@ -223,10 +262,19 @@ def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, floa
                 continue
             mask = masks[canonical]; region = canonical
         model_kg = float(sum(annual[s][mask].sum() for s in targets))
+        used_fallback = False
         if model_kg <= 0:
-            refusals.append(dict(region=region, ipcc_code=row.ipcc_code,
-                                 reason="the global inventory puts no emission of this sector here, so no factor can"))
-            continue
+            if not fallback:
+                refusals.append(dict(region=region, ipcc_code=row.ipcc_code,
+                                     reason="the global inventory puts no emission of this sector here; rerun with "
+                                            "--fallback to spread the reported total evenly over the region instead"))
+                continue
+            # last resort: an even spread over the region, recorded as such. Better than
+            # dropping a reported total, worse than a real pattern, and never silent.
+            first = targets[0]
+            annual[first] = annual[first] + mask * 1.0
+            model_kg = float(annual[first][mask].sum())
+            used_fallback = True
         overlap = [s for s in targets if applied[s][mask].any()]
         if overlap:
             raise ValueError(f"{region} {row.ipcc_code} would scale {overlap} twice; the export has overlapping categories")
@@ -237,11 +285,49 @@ def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, floa
             applied[s][mask] = True
         ledger.append(dict(region_level=row.region_level, region=region, ipcc_code=row.ipcc_code,
                            edgar_sectors=";".join(targets), gas=gas, year=year,
-                           reported_kg=reported_kg, global_kg=model_kg, factor=factor,
+                           reported_kg=reported_kg, global_kg=model_kg, factor=factor, pattern="EDGAR",
+                           fallback_even_spread=used_fallback,
                            reported_Gg=reported_kg / 1e6, global_Gg=model_kg / 1e6, source=row.source))
 
+    folu_fields = {}
+    if len(folu_rows):
+        with xr.open_dataset(folu_proxy) as proxy:
+            aligned = proxy.interp(lat=("y", lat), lon=("x", lon), method="nearest")
+            available = {name: np.nan_to_num(np.asarray(aligned[name].values, float)).reshape(len(lat), len(lon))
+                         for name in FOLU_COMPONENT_NAMES if name in aligned}
+        for row in folu_rows.itertuples():
+            layers = [name for name in FOLU_PROXY[row.ipcc_code] if name in available]
+            if not layers:
+                refusals.append(dict(region=row.region_name, ipcc_code=row.ipcc_code,
+                                     reason=f"the FOLU proxy has none of {FOLU_PROXY[row.ipcc_code]}"))
+                continue
+            if row.region_level == "national":
+                mask, region = np.ones_like(area, bool), "Indonesia"
+            else:
+                canonical = resolve_region(row.region_name, masks)
+                if canonical is None:
+                    refusals.append(dict(region=row.region_name, ipcc_code=row.ipcc_code,
+                                         reason="region name not found in the 38-province boundary"))
+                    continue
+                mask, region = masks[canonical], canonical
+            pattern = sum(available[name] for name in layers) * mask
+            weight = float(pattern.sum())
+            if weight <= 0:
+                refusals.append(dict(region=region, ipcc_code=row.ipcc_code,
+                                     reason="the FOLU proxy is empty here: no peat and no fire"))
+                continue
+            reported_kg = to_kilograms(row)
+            name = f"FOLU_{row.ipcc_code}"
+            folu_fields[name] = folu_fields.get(name, np.zeros_like(area)) + pattern / weight * reported_kg
+            ledger.append(dict(region_level=row.region_level, region=region, ipcc_code=row.ipcc_code,
+                               edgar_sectors=";".join(layers), gas=gas, year=year,
+                               reported_kg=reported_kg, global_kg=float("nan"), factor=float("nan"),
+                               pattern="FOLU proxy", fallback_even_spread=False,
+                               reported_Gg=reported_kg / 1e6, global_Gg=float("nan"), source=row.source))
+
     OUT.mkdir(parents=True, exist_ok=True)
-    dataset = xr.Dataset({s: (("lat", "lon"), scaled[s]) for s in sectors},
+    dataset = xr.Dataset({s: (("lat", "lon"), scaled[s]) for s in sectors}
+                         | {name: (("lat", "lon"), values) for name, values in folu_fields.items()},
                          coords=dict(lat=lat, lon=lon))
     for s in sectors:
         dataset[s].attrs.update(units="kg year-1 per cell", sector=s,
@@ -257,7 +343,7 @@ def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, floa
 
     # conservation: what the ledger promised must be what the grid now holds
     errors = []
-    for entry in ledger:
+    for entry in [e for e in ledger if e["pattern"] == "EDGAR"]:
         mask = np.any([masks[n] for n in names], axis=0) if entry["region"] == "Indonesia" else masks[entry["region"]]
         total = float(sum(scaled[s][mask].sum() for s in entry["edgar_sectors"].split(";")))
         if abs(total - entry["reported_kg"]) > 1e-6 * max(1.0, abs(entry["reported_kg"])):
@@ -348,6 +434,9 @@ def main() -> None:
     parser.add_argument("--gas", default="CO2", choices=sorted(EDGAR))
     parser.add_argument("--year", type=int, default=2023)
     parser.add_argument("--label", default="signsmart")
+    parser.add_argument("--gwp-set", choices=sorted(GWP_SETS), help="convert CO2e totals with a stated GWP100 horizon")
+    parser.add_argument("--folu-proxy", type=Path, help="FOLU pattern from a101, which makes category 3B usable")
+    parser.add_argument("--fallback", action="store_true", help="spread a total evenly where the global pattern is empty")
     parser.add_argument("--bounds", nargs=4, type=float, default=[94., -12., 142., 7.],
                         metavar=("WEST", "SOUTH", "EAST", "NORTH"))
     a = parser.parse_args()
@@ -358,7 +447,7 @@ def main() -> None:
     else:
         if not a.export:
             raise SystemExit("--export is required: the SIGN-SMART totals are not on this machine")
-        localise(a.export, a.gas, a.year, tuple(a.bounds), a.label)
+        localise(a.export, a.gas, a.year, tuple(a.bounds), a.label, a.gwp_set, a.folu_proxy, a.fallback)
 
 
 if __name__ == "__main__":

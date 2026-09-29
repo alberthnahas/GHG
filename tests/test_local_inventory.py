@@ -44,7 +44,8 @@ class ContractTests(unittest.TestCase):
             path = export_csv(Path(d), {"JAMBI": 100.}, code="3B")
             with self.assertRaises(ValueError) as caught:
                 L.read_export(path)
-            self.assertIn("no EDGAR counterpart", str(caught.exception))
+            self.assertIn("need the FOLU proxy", str(caught.exception))
+            self.assertIn("must never be scaled onto one", str(caught.exception))
 
     def test_co2_equivalent_without_a_stated_gwp_is_refused(self) -> None:
         with tempfile.TemporaryDirectory() as d:
@@ -132,3 +133,77 @@ class EngineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RefusalsAddressedTests(unittest.TestCase):
+    """The three refusals now have answers, and each answer is recorded rather than silent."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.totals, cls.annual, cls.masks = edgar_province_totals(["JAMBI"])
+        cls.proxy = ROOT / "outputs/inventory/folu_proxy_sumatra.nc"
+
+    def folu_export(self, directory: Path, folu_value=500.0, unit="Gg", gwp=None) -> Path:
+        rows = [dict(region_level="province", region_name="JAMBI", ipcc_code="1A1", sector_name="Energy industries",
+                     gas=GAS, year=YEAR, value=self.totals["JAMBI"], unit="Gg", source="test", gwp=None),
+                dict(region_level="province", region_name="JAMBI", ipcc_code="3B", sector_name="Land",
+                     gas=GAS, year=YEAR, value=folu_value, unit=unit, source="test", gwp=gwp)]
+        path = directory / "folu.csv"
+        pd.DataFrame(rows).to_csv(path, index=False)
+        return path
+
+    def test_land_use_still_refused_when_no_proxy_is_offered(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(ValueError) as caught:
+                L.read_export(self.folu_export(Path(d)))
+            self.assertIn("need the FOLU proxy", str(caught.exception))
+
+    @unittest.skipUnless((ROOT / "outputs/inventory/folu_proxy_sumatra.nc").exists(), "proxy not built")
+    def test_land_use_is_placed_on_its_own_proxy_and_conserves_its_total(self) -> None:
+        import xarray as xr
+        with tempfile.TemporaryDirectory() as d:
+            summary = L.localise(self.folu_export(Path(d)), GAS, YEAR, BOUNDS, "folu", folu_proxy=self.proxy)
+            with xr.open_dataset(summary["output"]) as ds:
+                self.assertIn("FOLU_3B", ds.data_vars)
+                placed = float(ds["FOLU_3B"].values.sum()) / 1e6
+            self.assertAlmostEqual(placed, 500.0, places=3)
+            ledger = pd.read_csv(L.OUT / f"local_inventory_co2_{YEAR}_folu_ledger.csv")
+            folu = ledger[ledger.ipcc_code.eq("3B")].iloc[0]
+            self.assertEqual(folu.pattern, "FOLU proxy")
+            self.assertTrue(np.isnan(folu.factor))          # a placement, not a rescaling
+
+    @unittest.skipUnless((ROOT / "outputs/inventory/folu_proxy_sumatra.nc").exists(), "proxy not built")
+    def test_land_use_lands_only_where_the_proxy_is_nonzero(self) -> None:
+        import xarray as xr
+        with tempfile.TemporaryDirectory() as d:
+            summary = L.localise(self.folu_export(Path(d)), GAS, YEAR, BOUNDS, "foluzero", folu_proxy=self.proxy)
+            with xr.open_dataset(summary["output"]) as ds:
+                placed = ds["FOLU_3B"].values
+            self.assertTrue((placed[~self.masks["JAMBI"]] == 0).all())   # confined to the declared province
+
+    def test_a_carbon_dioxide_total_in_equivalent_has_no_potential_to_apply(self) -> None:
+        """CO2e of CO2 is CO2; the sets carry no entry for it, and the refusal says so."""
+        with tempfile.TemporaryDirectory() as d:
+            path = export_csv(Path(d), {"JAMBI": 2800.}, unit="Gg CO2e", gwp=None)
+            with self.assertRaises(ValueError):
+                L.read_export(path)                                   # refused with no horizon
+            with self.assertRaises(ValueError) as caught:
+                L.read_export(path, gwp_set="AR6")
+            self.assertIn("no potential for", str(caught.exception))
+
+    def test_the_gwp_set_is_recorded_in_the_source(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            rows = [dict(region_level="province", region_name="JAMBI", ipcc_code="4", sector_name="Waste",
+                         gas="CH4", year=2022, value=280., unit="Gg CO2e", source="SIGN-SMART", gwp=None)]
+            path = Path(d) / "e.csv"
+            pd.DataFrame(rows).to_csv(path, index=False)
+            table = L.read_export(path, gwp_set="AR6")
+            self.assertAlmostEqual(float(table.gwp.iloc[0]), L.GWP_SETS["AR6"]["CH4"])
+            self.assertIn("AR6", table.source.iloc[0])
+            self.assertAlmostEqual(L.to_kilograms(table.iloc[0]), 280e6 / L.GWP_SETS["AR6"]["CH4"])
+
+    def test_an_unknown_gwp_set_is_refused(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            path = export_csv(Path(d), {"JAMBI": 100.}, unit="Gg CO2e", gwp=None)
+            with self.assertRaises(ValueError):
+                L.read_export(path, gwp_set="AR3")

@@ -82,4 +82,26 @@ a gridded prior with conserved mass and a provenance ledger.
       hook now takes per-province rows)
 - [ ] A SIGN-SMART export for the four provinces that matter. Not on this
       machine; the contract and template are in `config/signsmart_template.csv`.
-- [ ] A FOLU proxy, so the largest Indonesian term can enter the prior at all.
+- [x] A FOLU proxy (a101): peat drainage weighted by land cover, plus GFED fire split by peat.
+
+## Round two, 2026-09-29
+
+- All three refusals answered. FOLU has its own proxy (a101) and is never scaled
+  onto EDGAR; CO2e converts against a stated GWP100 horizon (--gwp-set); an empty
+  global pattern can fall back to an even spread, marked as such in the ledger.
+- Prior audit (a102): a national inventory can reach 82.8% of the methane signal
+  and 5.6% of the carbon dioxide signal. Nineteen twentieths of what the towers
+  see in carbon dioxide is the terrestrial biosphere, which no national inventory
+  reports. SIGN-SMART should therefore be prioritised for methane.
+- Over Sumatra 41.9% of GFED burned carbon falls on peat; Indonesia-wide 35.4%.
+- TypeSafe Jev wired in at the ingestion boundary only (a103), for free-text
+  Indonesian sector names the keyword rules cannot resolve. Kept out of the
+  inversion, the gates and the ratios, which must stay exactly recomputable.
+
+## Still open
+
+- [ ] A SIGN-SMART methane export for Sumatera Barat, Riau, Jambi and Sumatera
+      Selatan. Highest value item; everything else is built and waiting.
+- [ ] A biosphere prior, which is what actually limits carbon dioxide here.
+- [ ] Absolute FOLU emission factors, if a magnitude is ever needed without a
+      reported total: the published range spans a factor of ten.
