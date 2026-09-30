@@ -1,0 +1,8 @@
+region_level,region_name,ipcc_code,sector_name,gas,year,value,unit,source,gwp
+national,Indonesia,1A,Fuel combustion,CO2,2023,705000.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,1B,Fugitive emissions from fuels,CO2,2023,5260.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,2,Industrial processes,CO2,2023,58000.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,3C,Agriculture other,CO2,2023,6180.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,4,Waste,CO2,2023,2430.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,3B1,Land: drained organic soils,CO2,2023,241353.6,Gg,"FAOSTAT Emissions from Drained Organic Soils and Land Use Fires, 2022",
+national,Indonesia,3B2,Land: fire,CO2,2023,5411.7,Gg,"FAOSTAT Emissions from Drained Organic Soils and Land Use Fires, 2022",

@@ -90,6 +90,20 @@ DOCS = {
         subtitle="Numerical completeness, meteorological drivers, benchmark tests and quality assurance behind the two reports",
         title_footer="Technical record; contains no source attribution.",
         toc=True),
+    "BKT_JMB_Operational_Inversion_Report": dict(
+        title="Carbon dioxide and methane over Sumatra, seen from two towers",
+        running_title="Sumatran tower attribution and inversion, 2023 and 2024",
+        prefer_vector=True, figure_placement="htbp", flow_barriers=True, measured_tables=True,
+        # the title block is escaped like any other text, so chemistry goes in as
+        # Unicode and the escaper maps it; raw LaTeX here prints as raw LaTeX
+        title_meta=("Bukit Kototabang and Jambi, Indonesia | CO\u2082 and CH\u2084 | "
+                    "November\u2013December 2023 and October\u2013December 2024"),
+        title_no_hyphenation=True,
+        subtitle="Source attribution from the footprints, the peatland contribution, a test of the national inventory, and what the inversion can and cannot resolve",
+        title_footer=("Footprint-weighted attribution of stated priors, and regional adjustment factors under a stated error "
+                      "model conditional on parameterized transport; the attribution and the skill comparisons, not the "
+                      "multipliers, are this report's results."),
+        toc=True),
     "BKT_JMB_CO2_Report": dict(
         title="Carbon dioxide seen from two Sumatran towers",
         running_title="BKT and Jambi carbon dioxide inversion, 2023 and 2024",

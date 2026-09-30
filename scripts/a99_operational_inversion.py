@@ -73,6 +73,8 @@ class Gas:
         self.offset_prior, self.trend_prior = offset_prior, trend_prior
 
 
+FOLU_LABEL = ""          # "" leaves land use out; "full" adds the FOLU response as its own component
+
 CO2 = Gas("co2", "ppm", "co2_afternoon_mean",
           {"fossil_near": "fossil_near_ppm", "fossil_far": "fossil_far_ppm",
            "bio_net_BKT": "bio_net_BKT_ppm", "bio_net_JMB": "bio_net_JMB_ppm"},
@@ -90,14 +92,34 @@ GASES = {"co2": CO2, "ch4": CH4}
 
 # ------------------------------------------------------------------ frames
 
+BIOSPHERE = ""          # "" is the diagnostic prior; "_hybrid" is the CarbonTracker hybrid (a104)
+BIOSPHERE_PERIOD = {"": "all", "_hybrid": "2023"}   # the hybrid exists for the 2023 window
+
+
+def co2_components() -> dict[str, str]:
+    """The carbon dioxide components, with land use included when its response exists."""
+    components = dict(CO2.components)
+    if FOLU_LABEL:
+        components["folu_drainage"] = "folu_3b1_ppm"
+    return components
+
+
 def co2_frame() -> pd.DataFrame:
-    """Afternoon receptors over both windows, with the biosphere pair rotated."""
-    f = X.receptor_frame("", None, "all").copy()
+    """Afternoon receptors, with the biosphere pair rotated into net and contrast."""
+    f = X.receptor_frame(BIOSPHERE, None, BIOSPHERE_PERIOD.get(BIOSPHERE, "all")).copy()
     for code in ("BKT", "JMB"):
         member = f.station.eq(code).to_numpy().astype(float)
         # net is what the data see; contrast is the direction they cannot separate
         f[f"bio_net_{code}_ppm"] = (f.gpp_ppm + f.resp_ppm) * member
         f[f"bio_contrast_{code}_ppm"] = (f.gpp_ppm - f.resp_ppm) * member
+    if FOLU_LABEL:
+        # land use is the largest Indonesian term and EDGAR carries none of it;
+        # the response comes from the FOLU proxy convolved with the same footprints
+        folu = pd.read_csv(TABLES / f"co2_folu_response_{FOLU_LABEL}.csv", parse_dates=["time_utc"])
+        columns = [c for c in folu.columns if c.endswith("_ppm")]
+        f = f.merge(folu[["station", "time_utc"] + columns], on=["station", "time_utc"], how="left")
+        for column in columns:
+            f[column] = f[column].fillna(0.0)
     f["base"] = f.background_ppm + f.ocean_ppm + f.fire_ppm
     f["observed"] = f.co2_afternoon_mean
     seeds = ["gpp_ppm_seed_sd", "resp_ppm_seed_sd", "fossil_near_ppm_seed_sd", "background_ppm_seed_sd"]
@@ -105,10 +127,66 @@ def co2_frame() -> pd.DataFrame:
     return f.reset_index(drop=True)
 
 
+LOCAL_INVENTORY = ""     # "" is EDGAR; a ledger label such as "primap" rescales it to reported totals
+
+
+def localise_anthropogenic(frame: pd.DataFrame, label: str) -> pd.DataFrame:
+    """Rescale the anthropogenic response to a reported national inventory.
+
+    The operator is linear in the flux, so a per-sector factor can be applied to
+    the per-sector responses already stored rather than by re-running the
+    footprints. The near and far columns are then rescaled in the proportion the
+    sectors imply, which assumes the sector mix beyond 500 km resembles the mix
+    within it. That assumption is worth stating because it is not exactly true;
+    it is second order against factors that range from 0.09 to 1.70.
+    """
+    ledger = pd.read_csv(T.ROOT / f"outputs/inventory/local_inventory_ch4_2022_{label}_ledger.csv")
+    ledger = ledger[ledger.pattern.eq("EDGAR")]
+    influence = T.TABLES.parent / "inventory/province_influence_ch4_2022.csv"
+    provincial = (ledger.region_level == "province").any()
+    if provincial and influence.exists():
+        # A provincial ledger holds one factor per province per sector. The towers see
+        # provinces unevenly, so each sector's factor is the influence-weighted mean of
+        # its provincial factors, per station. That assumes a province's influence share
+        # is similar across sectors at a given tower, which is worth stating.
+        weights = pd.read_csv(influence)
+        weights["weight"] = weights.percent / 100.0
+        factor = {}
+        for station in weights.station.unique():
+            share = weights[weights.station.eq(station)].set_index("province").weight
+            for sectors, group in ledger.groupby("edgar_sectors"):
+                g = group.set_index("region").factor
+                common = share.index.intersection(g.index)
+                if common.empty:
+                    continue
+                effective = float((share[common] * g[common]).sum() / share[common].sum())
+                for sector in str(sectors).split(";"):
+                    factor[(station, f"CH4_{sector}")] = effective
+    else:
+        factor = {}
+        for sectors, value in zip(ledger.edgar_sectors, ledger.factor):
+            for sector in str(sectors).split(";"):
+                for station in ("BKT", "JMB"):
+                    factor[(station, f"CH4_{sector}")] = float(value)
+    sectors = pd.read_csv(TABLES / "sector_responses_base.csv", parse_dates=["time_utc"])
+    keys = list(zip(sectors.station, sectors.source))
+    sectors = sectors.assign(_factor=[factor.get(k, np.nan) for k in keys]).dropna(subset=["_factor"])
+    sectors["scaled"] = sectors.prior_enhancement_ppb * sectors._factor
+    totals = sectors.groupby(["station", "time_utc"]).agg(
+        before=("prior_enhancement_ppb", "sum"), after=("scaled", "sum")).reset_index()
+    frame = frame.merge(totals, on=["station", "time_utc"], how="left")
+    ratio = (frame.after / frame.before.where(frame.before > 0)).fillna(1.0).to_numpy()
+    for column in ("anthro_near_ppb", "anthro_far_ppb"):
+        frame[column] = frame[column] * ratio
+    return frame.drop(columns=["before", "after"])
+
+
 def ch4_frame() -> pd.DataFrame:
     """The screened methane receptors: transport usable, Jambi nights excluded."""
     f = pd.read_csv(TABLES / "operator_base.csv", parse_dates=["time_utc"])
     f = f[f.transport_usable & ~(f.station.eq("JMB") & f.time_utc.dt.hour.eq(18))].copy()
+    if LOCAL_INVENTORY:
+        f = localise_anthropogenic(f, LOCAL_INVENTORY)
     f["base"] = f.background_ppb + f.termites_ppb + f.geological_ppb - f.soil_uptake_ppb
     f["observed"] = f.ch4
     seeds = [c for c in f.columns if c.endswith("_ppb_seed_sd")]
@@ -126,7 +204,7 @@ def aggregate(frame: pd.DataFrame, gas: Gas, scale: str) -> pd.DataFrame:
         out["bin"] = out.time_utc.dt.normalize()
         out["count"] = 1
         return out
-    columns = ["base", "observed", "ensemble_sd"] + list(gas.components.values()) + \
+    columns = ["base", "observed", "ensemble_sd"] + list((co2_components() if gas.name == "co2" else gas.components).values()) + \
               [c for c in frame.columns if c.startswith("bio_contrast")]
     columns = [c for c in dict.fromkeys(columns) if c in frame.columns]
     out = frame.copy()
@@ -145,7 +223,8 @@ def aggregate(frame: pd.DataFrame, gas: Gas, scale: str) -> pd.DataFrame:
 
 def design(frame: pd.DataFrame, gas: Gas):
     """Response columns, nuisance columns and the fixed baseline."""
-    k = frame[list(gas.components.values())].to_numpy(float)
+    columns = list((co2_components() if gas.name == "co2" else gas.components).values())
+    k = frame[columns].to_numpy(float)
     stations = sorted(frame.station.unique())
     midpoint = frame.time_utc.min() + (frame.time_utc.max() - frame.time_utc.min()) / 2
     columns, names, sd = [], [], []
@@ -185,8 +264,17 @@ def covariance(frame: pd.DataFrame, gas: Gas, kappa: float) -> np.ndarray:
     return r
 
 
-def solve(frame: pd.DataFrame, gas: Gas, kappa: float, train: np.ndarray | None = None):
-    """MAP fit with a Laplace covariance, which is what the diagnostics need."""
+def solve(frame: pd.DataFrame, gas: Gas, kappa: float, train: np.ndarray | None = None, sample: bool = False):
+    """Fit the inversion, by Markov chain when the answer is reported.
+
+    A MAP fit with a Laplace covariance is about a thousand times faster, and its
+    medians agree with the sampler to within about 7%. Its intervals do not: in
+    log space the Gaussian approximation puts the upper bound 37 to 44% too high,
+    which flows straight into the uncertainty ratio and the degrees of freedom and
+    makes the data look less informative than they are. So the reported fit is
+    sampled, and the approximation is kept only inside the cross-validation loop,
+    where nothing but the mode is used.
+    """
     k, b, base, names, nuisance_sd = design(frame, gas)
     y = frame.observed.to_numpy(float) - base
     prior_sd = np.r_[np.repeat(np.log(gas.multiplier_factor), k.shape[1]), nuisance_sd]
@@ -194,15 +282,34 @@ def solve(frame: pd.DataFrame, gas: Gas, kappa: float, train: np.ndarray | None 
     train = np.ones(len(frame), bool) if train is None else train
     problem = C.SignedInverseProblem(k[train], b[train], y[train], r[np.ix_(train, train)], prior_sd)
     theta, _, _ = problem.fit()
-    jac = problem.jacobian(theta)
-    posterior_cov = np.linalg.inv(jac.T @ jac)
+    if sample:
+        from bkt_methane_inverse import chain_diagnostics
+        for draws, thin in ((12000, 3), (48000, 12)):
+            chains, _ = problem.sample(draws=draws, thin=thin)
+            rhat, ess = chain_diagnostics(chains)
+            if np.max(rhat) <= 1.01 and np.min(ess) >= 1000:
+                break
+        else:
+            raise RuntimeError(f"chains did not converge: R-hat {np.max(rhat):.3f}, ESS {np.min(ess):.0f}")
+        draws_flat = chains.reshape(-1, problem.ndim)
+        theta = np.median(draws_flat, axis=0)
+        posterior_cov = np.cov(draws_flat, rowvar=False)
+        quantiles = np.quantile(draws_flat, [.025, .975], axis=0)
+        convergence = dict(rhat=float(np.max(rhat)), ess=float(np.min(ess)), draws=int(len(draws_flat)))
+    else:
+        jac = problem.jacobian(theta)
+        posterior_cov = np.linalg.inv(jac.T @ jac)
+        quantiles = np.vstack([theta - 1.96 * np.sqrt(np.diag(posterior_cov)),
+                               theta + 1.96 * np.sqrt(np.diag(posterior_cov))])
+        convergence = dict(rhat=float("nan"), ess=float("nan"), draws=0)
     residual = problem.residual(theta)[:int(train.sum())]
     chi = float(residual @ residual / train.sum())
     ns = k.shape[1]
     prediction = base + k @ np.exp(theta[:ns]) + b @ theta[ns:]
     nuisance_only = base + b @ S.ridge(b, y, r, train, nuisance_sd)
-    return dict(theta=theta, names=list(gas.components) + names, posterior_cov=posterior_cov, prior_sd=prior_sd,
-                chi=chi, nsource=ns, prediction=prediction, background_only=nuisance_only, response=k, problem=problem)
+    return dict(theta=theta, names=list(co2_components() if gas.name == "co2" else gas.components) + names, posterior_cov=posterior_cov, prior_sd=prior_sd,
+                chi=chi, nsource=ns, prediction=prediction, background_only=nuisance_only, response=k,
+                problem=problem, quantiles=quantiles, convergence=convergence)
 
 
 def calibrate(frame: pd.DataFrame, gas: Gas) -> float:
@@ -293,7 +400,7 @@ def run(gas_name: str, scale: str, write: bool = True) -> dict:
     frame = aggregate(FRAMES[gas_name](), gas, scale)
     bins = int(frame["bin"].nunique())
     kappa = calibrate(frame, gas)
-    fit = solve(frame, gas, kappa)
+    fit = solve(frame, gas, kappa, sample=True)     # the reported fit is sampled, not approximated
     diag = diagnostics(fit)
     predictions = cross_validate(frame, gas, kappa)
     table = skill(predictions, gas)
@@ -302,18 +409,30 @@ def run(gas_name: str, scale: str, write: bool = True) -> dict:
     parameters = pd.DataFrame(dict(
         gas=gas.name, scale=scale, parameter=fit["names"][:ns],
         multiplier=np.exp(fit["theta"][:ns]),
-        q025=np.exp(fit["theta"][:ns] - 1.96 * posterior), q975=np.exp(fit["theta"][:ns] + 1.96 * posterior),
+        q025=np.exp(fit["quantiles"][0][:ns]), q975=np.exp(fit["quantiles"][1][:ns]),
         uncertainty_ratio=posterior / fit["prior_sd"][:ns]))
     result = verdict(gas, scale, bins, diag, table)
     result["transport_amplitude"] = round(kappa, 3)
     result["receptors"] = int(len(frame))
+    result["biosphere"] = BIOSPHERE or "diagnostic"
+    result["inventory"] = LOCAL_INVENTORY or "EDGAR"
+    result["folu"] = FOLU_LABEL or "excluded"
+    # the prior is the response at unit multipliers; fit["prediction"] is the posterior,
+    # and calling that a prior would overstate how good the untouched inventory is
+    prior = fit["response"].sum(axis=1) + frame.base.to_numpy()
+    result["prior_rmse"] = round(float(np.sqrt(((prior - frame.observed) ** 2).mean())), 3)
+    result["posterior_rmse_in_sample"] = round(float(np.sqrt(((fit["prediction"] - frame.observed) ** 2).mean())), 3)
+    result["convergence"] = fit["convergence"]
     if write:
         OUT.mkdir(parents=True, exist_ok=True)
-        parameters.to_csv(OUT / f"inversion_{gas.name}_{scale}_parameters.csv", index=False)
+        tag = f"{gas.name}{BIOSPHERE}{'_' + LOCAL_INVENTORY if LOCAL_INVENTORY else ''}"
+        tag += f"_folu{FOLU_LABEL}" if FOLU_LABEL else ""
+        tag += f"_{scale}"
+        parameters.to_csv(OUT / f"inversion_{tag}_parameters.csv", index=False)
         if not table.empty:
-            table.to_csv(OUT / f"inversion_{gas.name}_{scale}_skill.csv", index=False)
+            table.to_csv(OUT / f"inversion_{tag}_skill.csv", index=False)
         if not predictions.empty:
-            predictions.to_csv(OUT / f"inversion_{gas.name}_{scale}_predictions.csv", index=False)
+            predictions.to_csv(OUT / f"inversion_{tag}_predictions.csv", index=False)
     print(f"{gas.name} {scale}: {len(frame)} receptors in {bins} bins, transport amplitude {kappa:.2f}, "
           f"chi2 {diag['reduced_chi_square']:.2f}, DOFS {diag['degrees_of_freedom']:.2f} -> {result['status']}", flush=True)
     if not table.empty:
@@ -323,15 +442,68 @@ def run(gas_name: str, scale: str, write: bool = True) -> dict:
     return result
 
 
+def error_budget() -> pd.DataFrame:
+    """What the source signal has to compete with, term by term.
+
+    This is the diagnostic that explains the others. If the signal the sources
+    make at the receptor is not comfortably larger than the error it arrives
+    through, no prior and no aggregation can recover it, and the inversion will
+    keep losing to a fitted constant however well it is built.
+    """
+    rows = []
+    for gas in GASES.values():
+        frame = aggregate(FRAMES[gas.name](), gas, "daily")
+        kappa = calibrate(frame, gas)
+        signal = float(frame[list((co2_components() if gas.name == "co2" else gas.components).values())].sum(axis=1).std())
+        transport = float((kappa * frame.ensemble_sd).mean())
+        independent = float(np.hypot(gas.measurement, gas.local))
+        total = float(np.sqrt(transport ** 2 + independent ** 2 + gas.background ** 2))
+        rows.append(dict(gas=gas.name, unit=gas.unit, source_signal_sd=signal,
+                         transport_error=transport, transport_amplitude=kappa,
+                         measurement_and_local=independent, background=gas.background,
+                         total_error=total, signal_to_error=signal / total if total else np.nan,
+                         dominant_term=max((transport, "transport"), (independent, "measurement and local"),
+                                           (gas.background, "background"))[1]))
+    table = pd.DataFrame(rows)
+    OUT.mkdir(parents=True, exist_ok=True)
+    table.to_csv(OUT / "error_budget.csv", index=False)
+    for row in table.itertuples():
+        print(f"{row.gas}: signal {row.source_signal_sd:.2f} {row.unit} against total error {row.total_error:.2f}, "
+              f"ratio {row.signal_to_error:.2f}; dominant term is {row.dominant_term} "
+              f"({row.transport_error:.2f}, amplitude {row.transport_amplitude:.2f})", flush=True)
+    return table
+
+
+# The configurations the operational campaign runs: each gas with the prior it
+# should use, and the reference it is measured against.
+CONFIGURATIONS = [
+    dict(gas="co2", prior="global inventory, diagnostic biosphere", biosphere="", inventory="", folu=""),
+    dict(gas="co2", prior="hybrid biosphere", biosphere="_hybrid", inventory="", folu=""),
+    dict(gas="co2", prior="with land use included", biosphere="", inventory="", folu="full"),
+    dict(gas="ch4", prior="global inventory", biosphere="", inventory="", folu=""),
+    dict(gas="ch4", prior="national reported inventory", biosphere="", inventory="primap", folu=""),
+    dict(gas="ch4", prior="provincial reported inventory", biosphere="", inventory="provincial", folu=""),
+]
+
+
 def campaign() -> None:
+    global BIOSPHERE, LOCAL_INVENTORY, FOLU_LABEL
     verdicts = []
-    for gas_name in GASES:
+    for configuration in CONFIGURATIONS:
+        BIOSPHERE = configuration["biosphere"]
+        LOCAL_INVENTORY = configuration["inventory"]
+        FOLU_LABEL = configuration.get("folu", "")
+        print(f"\n--- {configuration['gas']}: {configuration['prior']} ---", flush=True)
         for scale in SCALES:
             try:
-                verdicts.append(run(gas_name, scale))
+                verdict = run(configuration["gas"], scale)
+                verdict["prior"] = configuration["prior"]
+                verdicts.append(verdict)
             except Exception as error:  # noqa: BLE001 - a scale that cannot be fitted is reported, not fatal
-                verdicts.append(dict(gas=gas_name, scale=scale, status=f"failed: {type(error).__name__}: {error}"))
-                print(f"{gas_name} {scale}: FAILED {type(error).__name__}: {error}", flush=True)
+                verdicts.append(dict(gas=configuration["gas"], prior=configuration["prior"], scale=scale,
+                                     status=f"failed: {type(error).__name__}: {error}"))
+                print(f"  {scale}: FAILED {type(error).__name__}: {error}", flush=True)
+    BIOSPHERE, LOCAL_INVENTORY, FOLU_LABEL = "", "", ""
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "inversion_readiness.json").write_text(json.dumps(verdicts, indent=2) + "\n")
     operational = [v for v in verdicts if v.get("status") == "operational"]
@@ -342,11 +514,24 @@ def campaign() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=["fit", "campaign"])
+    parser.add_argument("stage", choices=["fit", "campaign", "budget"])
     parser.add_argument("--gas", choices=sorted(GASES), default="co2")
     parser.add_argument("--scale", choices=sorted(SCALES), default="daily")
+    parser.add_argument("--biosphere", default="", choices=sorted(BIOSPHERE_PERIOD),
+                        help="which carbon dioxide biosphere prior to use")
+    parser.add_argument("--local-inventory", default="", help="ledger label to rescale the methane prior, e.g. primap")
+    parser.add_argument("--folu", default="", help="label of the FOLU response to include for carbon dioxide, e.g. full")
     a = parser.parse_args()
-    run(a.gas, a.scale) if a.stage == "fit" else campaign()
+    global BIOSPHERE, LOCAL_INVENTORY, FOLU_LABEL
+    BIOSPHERE = a.biosphere
+    LOCAL_INVENTORY = a.local_inventory
+    FOLU_LABEL = a.folu
+    if a.stage == "budget":
+        error_budget()
+    elif a.stage == "fit":
+        run(a.gas, a.scale)
+    else:
+        campaign()
 
 
 if __name__ == "__main__":

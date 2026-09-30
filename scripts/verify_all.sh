@@ -88,6 +88,15 @@ latex_gate() {
             "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_bkt_jmb_co2_report.py >/dev/null || return 1
             echo "   carbon dioxide report checks passed"
         fi
+        if [[ -f outputs/operational/inversion_readiness.json ]]; then
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/a106_dataset_registry.py check >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/check_pdf.py outputs/BKT_JMB_Operational_Inversion_Report.pdf >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" -m unittest tests.test_operational_inversion tests.test_operational_datasets \
+                tests.test_biosphere_prior tests.test_local_inventory tests.test_folu_and_audit tests.test_sector_matching \
+                tests.test_attribution >/dev/null || return 1
+            "${GHG_SCIENTIFIC_PYTHON:-python3}" scripts/validate_operational_report.py >/dev/null || return 1
+            echo "   operational inversion checks passed"
+        fi
     elif [[ -f outputs/hysplit/refinement/analysis/metrics.json ]]; then
         python3 scripts/validate_bkt_footprint_report.py --refinement >/dev/null || return 1
         echo "   revised BKT report and independent numerical checks passed"
