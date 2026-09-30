@@ -249,8 +249,16 @@ def localise(export: Path, gas: str, year: int, bounds: tuple[float, float, floa
     ledger, refusals = [], []
     scaled = {s: np.array(annual[s], dtype=float) for s in sectors}
     applied = {s: np.zeros_like(area, dtype=bool) for s in sectors}
-    for row in table.itertuples():
-        targets = CROSSWALK[row.ipcc_code][0]
+    # Several IPCC categories can share one EDGAR sector: 3A livestock and 3C rice
+    # both live in EDGAR AGRICULTURE. Comparing either alone against the whole
+    # sector would understate the reported total, so they are summed first.
+    table = table.assign(targets=[";".join(CROSSWALK[c][0]) for c in table.ipcc_code])
+    grouped = (table.groupby(["region_level", "region_name", "targets"], as_index=False)
+               .agg(value=("value", "sum"), unit=("unit", "first"), gwp=("gwp", "first") if "gwp" in table else ("value", "size"),
+                    ipcc_code=("ipcc_code", lambda v: "+".join(sorted(set(v)))),
+                    source=("source", "first")))
+    for row in grouped.itertuples():
+        targets = [t for t in row.targets.split(";") if t]
         if row.region_level == "national":
             mask = np.any([masks[n] for n in names], axis=0)
             region = "Indonesia"

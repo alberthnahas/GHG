@@ -1,0 +1,7 @@
+region_level,region_name,ipcc_code,sector_name,gas,year,value,unit,source,gwp
+national,Indonesia,1A,Fuel combustion,CH4,2022,113.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,1B,Fugitive emissions from fuels,CH4,2022,666.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,2,Industrial processes,CH4,2022,3.74,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,3A,Livestock,CH4,2022,1400.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,4,Waste,CH4,2022,4760.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),
+national,Indonesia,3C,"Agriculture other, rice and soils",CH4,2022,1680.0,Gg,PRIMAP-hist v2.6.1 HISTCR (country-reported),

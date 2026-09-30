@@ -260,3 +260,208 @@ inside any of those would trade auditability for nothing, because a threshold
 already does the job exactly. The one place semantic understanding genuinely
 helps is reading free text at the ingestion boundary, so that is the only place
 it is used.
+
+
+# The biosphere prior, and the finding that reframes the programme
+
+The audit put 95% of the modelled carbon dioxide signal on the terrestrial
+biosphere, so that prior, not the emission inventory, is what limits that gas.
+Two sources existed and each failed differently. CarbonTracker CT-NRT is
+assimilated, so its magnitude and seasonality carry real information, but its
+sub-daily phase inverts for a week over both tower cells. The diagnostic prior
+cannot invert, but the inversion scaled it to between 0.20 and 0.42, meaning its
+amplitude was two to five times too large.
+
+A daily mean is insensitive to a phase error and a diurnal shape is insensitive
+to a magnitude error, so `a104_biosphere_prior.py` takes the daily mean and the
+diurnal amplitude from CarbonTracker and the shape from the diagnostic model.
+The amplitude is measured only on days when CarbonTracker's own phase is sound,
+so the inverted week cannot contaminate it.
+
+| Property | Result |
+| --- | --- |
+| Daily mean reproduces CarbonTracker | to 3e-15 umol m-2 s-1, by construction |
+| Inverted-phase cell days | 201,374 in CT-NRT, 520 in the hybrid |
+| Afternoon drawdown at the towers | -13.5 and -15.4 become -5.5 and -5.2 |
+| Diurnal amplitude at the towers | 23 and 26 become 10, against CT-NRT's 8.5 and 9.0 |
+
+The amplitude is independently corroborated. The inversion had been scaling the
+old prior by 0.20 to 0.42, implying it wanted a drawdown near -3 to -6. The
+hybrid, built only from CarbonTracker's daily mean and its phase-correct
+amplitude, gives -5.5 and -5.2. Two separate routes reached the same number.
+
+## It did not make the inversion beat the null
+
+On identical 2023 receptors, the honest comparison:
+
+| Prior | Prior RMSE | BKT difference | Jambi difference |
+| --- | --- | --- | --- |
+| diagnostic | 6.75 ppm | +0.85 (-0.65 to +2.42) | -0.19 (-2.22 to +1.67) |
+| hybrid | 6.91 ppm | +0.43 (-0.41 to +1.45) | +0.45 (-0.57 to +1.22) |
+
+Better at BKT, worse at Jambi, neither resolved, and the prior error barely
+moved. A better biosphere prior was necessary, because the old one was
+demonstrably wrong in phase and amplitude, and it was not sufficient.
+
+## Why nothing helps: the error budget
+
+`a99_operational_inversion.py budget` answers it in one table.
+
+| Gas | Source signal | Transport error | Measurement and local | Background | Total | Signal to error |
+| --- | --- | --- | --- | --- | --- | --- |
+| CO2 | 6.54 ppm | 4.35 | 2.01 | 1.00 | 4.90 | **1.34** |
+| CH4 | 73.11 ppb | 56.34 | 20.62 | 10.00 | 60.82 | **1.20** |
+
+The source signal is barely above the noise it arrives through, and transport is
+the dominant term for both gases. That single fact explains every negative
+result in this work: why the posterior loses to a fitted constant, why the
+nuisance-only model beats it, why four times the sample did not rescue it, and
+why neither a localised inventory nor a corrected biosphere prior changes the
+verdict. The sources are not what is missing.
+
+**This should redirect the programme.** Priors are no longer the binding
+constraint, and further work on them will not flip the verdict. Cutting the
+transport error by a factor of three to four would take the signal-to-error
+ratio from about 1.3 to about 4, which is where a regional inversion starts to
+constrain fluxes. The candidates, in order of expected return:
+
+1. Finer meteorology. GFS at a quarter degree is about 28 km, which cannot
+   resolve the terrain at BKT or the coastline at Jambi. A WRF run at 3 to 9 km
+   is the obvious step, and this machine already holds a WRF-GRK workspace.
+2. Measure the transport error instead of calibrating it. The calibrated
+   amplitude of 7 to 12 says two or three seeds understate it roughly tenfold. A
+   driver-to-driver comparison, GFS against ERA5, would measure the systematic
+   part that extra seeds of one driver cannot see.
+3. Observations less sensitive to transport, such as column measurements, where
+   the boundary-layer error that dominates a surface receptor largely cancels.
+
+
+# The local inventory, used
+
+SIGN-SMART's own database sits behind a login. Indonesia's reporting to the
+UNFCCC is produced from that inventory and is public, so PRIMAP-hist v2.6.1 in
+its HISTCR scenario, which prioritises country-reported submissions over
+third-party estimates, carries the same national numbers by another route. It is
+downloaded with its checksum to `data/bkt_sources/primap/`.
+
+## What the country reports against what EDGAR assumes
+
+Indonesian methane for 2022, inside the country mask:
+
+| IPCC category | EDGAR (Gg) | Reported (Gg) | Factor |
+| --- | --- | --- | --- |
+| 1A fuel combustion | 215.6 | 113.0 | 0.52 |
+| 1B fugitive | 7542.6 | 666.0 | **0.09** |
+| 2 industrial processes | 3.5 | 3.7 | 1.06 |
+| 3A and 3C agriculture | 4141.4 | 3080.0 | 0.74 |
+| 4 waste | 2805.1 | 4760.0 | **1.70** |
+
+EDGAR puts eleven times more fugitive methane in Indonesia than the country
+reports, and forty percent less waste methane. Whether that gap is EDGAR's
+spatial allocation, a real under-report, or a definitional difference is exactly
+the kind of question a tower network exists to answer.
+
+## What it does to the towers
+
+| Tower | Anthropogenic prior before | After | Dominant change |
+| --- | --- | --- | --- |
+| Bukit Kototabang | 121.2 ppb | 101.0 ppb | fugitive 16.5 to 1.5 |
+| Jambi | 200.1 ppb | 105.9 ppb | fugitive 117.7 to 10.4 |
+
+The operator is linear in the flux, so the per-sector factors apply to the
+per-sector responses already stored, without re-running any footprints. The near
+and far columns are rescaled in the proportion the sectors imply, which assumes
+the sector mix beyond 500 km resembles the mix within it; that is worth stating,
+and it is second order against factors spanning 0.09 to 1.70.
+
+## And what it does to the inversion
+
+| Prior | Prior RMSE | BKT difference | Jambi difference |
+| --- | --- | --- | --- |
+| EDGAR | 99.5 ppb | -0.1 (-8.9 to +9.1) | +4.8 (-8.4 to +20.8) |
+| localised | **57.7 ppb** | **-1.6** (-6.4 to +3.7) | **-2.1** (-10.5 to +8.2) |
+
+The prior error falls by 42%, and for the first time in this work the posterior
+predicts better than the boundary null at both towers rather than one or
+neither. The Jambi difference changes sign. Weekly aggregation moves further in
+the same direction, BKT -8.45 ppb, though on five bins it stays unresolved.
+
+Nothing here is resolved at 95%: every interval still spans zero, and the gate
+still reports "informed, not better than the null" because that is what the
+evidence supports. But the direction is now consistent across both towers, both
+scales and the prior error, which it never was before.
+
+**This corrects something stated earlier in this work.** After the biosphere
+prior failed to improve carbon dioxide, the error budget was read as meaning
+priors were no longer the binding constraint for either gas. That was too
+general. The audit had already said a national inventory could reach 82.8% of
+the methane signal against 5.6% of carbon dioxide, and the methane result
+follows the audit, not the generalisation. Transport dominates the error budget
+for both gases; for methane the prior error was large enough that reducing it
+still moved the answer.
+
+---
+
+# Source attribution and the maps
+
+The readiness campaign answers whether the inversion may be trusted. It does not
+answer what the towers are actually seeing, and for most of this project's life
+the report carried no maps for what is, from end to end, a spatial argument.
+`a109_operational_maps.py` and `a110_attribution.py` close both gaps.
+
+## Where the numbers come from
+
+Nothing here re-runs a footprint. `a84` already writes
+`outputs/hysplit/two_receptor/inversion/spatial_operator_{bkt,jmb}.nc`, which
+holds, per receptor, the seed-mean time-summed footprint, the gridded prior
+contribution of each component in ppb, and a distance field. Masking that by
+peat extent, by province, by district or by distance band is arithmetic on
+arrays that already exist, and it takes seconds.
+
+One identity makes the convolutions safe to write. A mole-fraction footprint
+stored in ppm per umol m-2 s-1 is numerically the same number as ppb per
+nmol m-2 s-1, so a methane flux expressed in nmol m-2 s-1 convolves straight to
+ppb and a carbon dioxide flux in umol m-2 s-1 convolves straight to ppm. That is
+why `a110.nmol_field` scales by 1e9 for methane and 1e6 for carbon dioxide from
+the same kilograms-per-year field.
+
+## Stages
+
+```
+python3 scripts/a110_attribution.py all        # eight tables into outputs/operational
+python3 scripts/a109_operational_maps.py       # six maps into outputs/operational/figures
+python3 scripts/a111_report_questions.py       # the question index, printed
+```
+
+`a110 budget` needs `attribution_budget.csv` before `peat` runs, because the
+peat stage rescales the anthropogenic term by the localisation ratio the budget
+computes; `flux` needs `attribution_provinces.csv`, because it quotes the
+posterior over the provinces the towers actually see. Running `all` orders them
+correctly.
+
+## What the tables say
+
+- **The prior overpredicts before any fit.** The global gridded inventory says
+  115 ppb of methane should arrive above background at Bukit Kototabang and
+  147 ppb at Jambi; 56 and 47 ppb arrive.
+- **The towers see four provinces.** Sumatera Barat, Jambi, Sumatera Selatan and
+  Riau. Nothing outside Sumatra reaches one percent at either tower.
+- **The signal is concentrated.** Muara Enim carries 8.3% of the Bukit Kototabang
+  methane signal from 0.02% of its footprint sensitivity, a ratio of 415: one or
+  two cells of the gridded inventory set a large part of what the model expects.
+- **Peat is a lowland question.** 23% of the modelled methane signal at Jambi and
+  2.9% at Bukit Kototabang, by three separable routes.
+- **The detection limit is the operational number.** Nothing in the campaign is
+  constrained better than 67%, so a change smaller than about a factor of two is
+  invisible to this network whatever the record length.
+
+## Cartography
+
+Maps follow the shared standard: a quiet base with neighbouring land in grey and
+the study area off-white, the high-resolution world layer outside Indonesia and
+the 38-province layer inside it, sequential scales for magnitudes and a diverging
+scale centred on one for the inventory ratio, explicit zorder, a 300 dpi raster
+and a vector companion. Panel boxes are laid out in inches from the extent's
+aspect ratio rather than in figure fractions, which is what keeps an equal-aspect
+map from leaving a band of white space. Raster layers are marked `rasterized` so
+the vector PDF stays a few hundred kilobytes rather than tens of megabytes.

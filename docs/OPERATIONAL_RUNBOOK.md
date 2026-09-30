@@ -88,3 +88,38 @@ guess: a window with no afternoon hours produces an empty plan that says why.
 The strongest signal in the archive is the October 2015 haze at BKT, hourly CO
 reaching 5795 ppb. It is the natural first target, because a transport layer
 that cannot attribute that one cannot attribute anything.
+
+## 3. Attribution and maps, once footprints exist
+
+Once a station has a spatial operator file, every question about where its
+signal comes from is arithmetic on arrays already written, and nothing has to be
+re-run. This is the part to reach for when someone asks what the tower is
+measuring rather than whether the inversion works.
+
+```
+python3 scripts/a110_attribution.py all         # eight tables, seconds not hours
+python3 scripts/a109_operational_maps.py        # six publication maps
+python3 scripts/a111_report_questions.py        # the question index, printed
+python3 scripts/a107_operational_report.py      # rebuild the report from them
+python3 scripts/validate_operational_report.py  # 65 checks against the evidence
+```
+
+`a110 all` orders the stages correctly: the peat stage needs the budget, and the
+flux stage needs the provincial shares. Run a stage on its own only when the one
+it depends on is already current.
+
+What the tables answer, in the order a question usually arrives:
+
+| Question | Table |
+| --- | --- |
+| what arrives, and does the prior predict it | `attribution_records.csv` |
+| how far away and how old the sources are | `attribution_distance.csv`, `attribution_age.csv` |
+| which province or district carries the signal | `attribution_provinces.csv`, `attribution_districts.csv` |
+| which sector emits it | `attribution_budget.csv` |
+| how much comes off peatland | `attribution_peat.csv` |
+| what emission the posterior implies, and what could be detected | `attribution_flux.csv` |
+
+The detection limit in the last of those is the number to quote when asked
+whether a network can verify a commitment. It does not depend on the prior being
+right, only on the posterior width, so it survives every disagreement about the
+inventory.

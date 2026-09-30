@@ -169,6 +169,69 @@ def build(bounds: tuple[float, float, float, float], resolution: float, label: s
     return report
 
 
+def response(label: str, gas: str = "CO2", year: int = 2023, seed_limit: int | None = None) -> pd.DataFrame:
+    """Footprint-weighted FOLU contribution at each receptor, in mole fraction units.
+
+    The localised file holds kilograms per year in each cell. A footprint is in
+    ppm per umol m-2 s-1, so the field is converted to a flux density before the
+    convolution, and the two FOLU layers are kept apart because drainage is
+    continuous and fire is episodic.
+    """
+    import xarray as xr
+    import a71_domain_budget_extension as ext
+    import a84_bkt_jmb_two_receptor as T
+    import a91_bkt_jmb_co2_experiments as X
+
+    molar_mass = {"CO2": 0.044009, "CH4": 0.016043}[gas]          # kg per mole
+    seconds = 365.25 * 86400
+    source = OUT / f"local_inventory_{gas.lower()}_{year}_{label}.nc"
+    with xr.open_dataset(source) as ds:
+        layers = {name: ds[name].load() for name in ds.data_vars if name.startswith("FOLU_")}
+        src_lat, src_lon = ds.lat.values, ds.lon.values
+    if not layers:
+        raise ValueError(f"{source} carries no FOLU field; localise with --folu-proxy first")
+    area = np.repeat((6371008.8 ** 2 * np.abs(np.diff(np.deg2rad(
+        np.r_[src_lat - np.diff(src_lat).mean() / 2, src_lat[-1] + np.diff(src_lat).mean() / 2]))) *
+        np.deg2rad(np.diff(src_lon).mean()))[:, None], len(src_lon), axis=1)
+    # kg per year per cell -> umol m-2 s-1
+    flux = {name: xr.DataArray(values.values / area / seconds / molar_mass * 1e6,
+                               coords=dict(lat=src_lat, lon=src_lon), dims=("lat", "lon"))
+            for name, values in layers.items()}
+
+    frame = X.receptor_frame("", None, "2023")
+    rows = []
+    for code in ("BKT", "JMB"):
+        stamps = sorted(frame.loc[frame.station.eq(code), "time_utc"])
+        seeds = T.SEEDS[:seed_limit] if seed_limit else T.SEEDS
+        for stamp in stamps:
+            members = []
+            for seed in seeds:
+                directory = T.RUNS / f"{code.lower()}_s{seed}" / f"bkt_{stamp:%Y%m%dT%H%MZ}"
+                if not (directory / "completion_receipt.json").exists():
+                    continue
+                footprint, _, _ = ext.read_footprint(directory)
+                total = footprint.values.sum(axis=0)
+                entry = {}
+                for name, field in flux.items():
+                    aligned = field.interp(lat=("y", footprint.lat.values), lon=("x", footprint.lon.values),
+                                           method="nearest").values.reshape(total.shape)
+                    entry[f"{name.lower()}_ppm"] = float(np.nansum(total * np.nan_to_num(aligned)))
+                members.append(entry)
+            if members:
+                mean = pd.DataFrame(members).mean()
+                rows.append(dict(station=code, time_utc=stamp, members=len(members), **mean.to_dict()))
+    table = pd.DataFrame(rows)
+    destination = T.TABLES / f"{gas.lower()}_folu_response_{label}.csv"
+    table.to_csv(destination, index=False)
+    columns = [c for c in table.columns if c.endswith("_ppm")]
+    print(f"FOLU response at {len(table)} receptors -> {destination}", flush=True)
+    for code in ("BKT", "JMB"):
+        g = table[table.station.eq(code)]
+        summary = ", ".join(f"{c.replace('folu_', '').replace('_ppm', '')} {g[c].mean():.2f}" for c in columns)
+        print(f"  {code}: mean contribution {summary} ppm", flush=True)
+    return table
+
+
 def weights() -> None:
     import a100_local_inventory as L
     print("Relative drainage weight by MODIS IGBP class, on peat only:")
@@ -186,13 +249,19 @@ def weights() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("stage", choices=["build", "weights"])
+    parser.add_argument("stage", choices=["build", "weights", "response"])
     parser.add_argument("--bounds", nargs=4, type=float, default=[94., -12., 142., 7.],
                         metavar=("WEST", "SOUTH", "EAST", "NORTH"))
     parser.add_argument("--resolution", type=float, default=0.1)
     parser.add_argument("--label", default="indonesia")
+    parser.add_argument("--gas", default="CO2")
     a = parser.parse_args()
-    build(tuple(a.bounds), a.resolution, a.label) if a.stage == "build" else weights()
+    if a.stage == "build":
+        build(tuple(a.bounds), a.resolution, a.label)
+    elif a.stage == "response":
+        response(a.label)
+    else:
+        weights()
 
 
 if __name__ == "__main__":
