@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/ch4/in-situ/surface/txt/ch4_mlo_surface-insitu_1_ccgg_DailyData.txt",
+  "filename": "ch4_mlo_surface-insitu_1_ccgg_DailyData.txt",
+  "bytes": 1779829,
+  "sha256": "8994f4991a77c31a4aa08d9763419c69f13bb8f81683a21fb9fa242814b7d927",
+  "retrieved_at_utc": "2026-11-15T07:26:01.494421+00:00",
+  "provider": "NOAA GML CCGG in situ"
+}

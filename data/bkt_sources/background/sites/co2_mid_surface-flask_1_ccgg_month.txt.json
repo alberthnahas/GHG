@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/co2/flask/surface/txt/co2_mid_surface-flask_1_ccgg_month.txt",
+  "filename": "co2_mid_surface-flask_1_ccgg_month.txt",
+  "bytes": 12671,
+  "sha256": "402f6762239bbdacb8fe568013842e74e954e2e6a46e437fa41cd4473a5454f2",
+  "retrieved_at_utc": "2026-11-15T07:25:43.134381+00:00",
+  "provider": "NOAA GML CCGG flask"
+}

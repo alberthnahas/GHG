@@ -1,0 +1,11 @@
+{
+  "source_url": "https://gml.noaa.gov/ccgg/mbl/tmp/co2_GHGreference.1595763103_surface.txt",
+  "filename": "co2_GHGreference_surface_2000_2025.txt",
+  "bytes": 1350698,
+  "sha256": "efa43cac7e36ef800151ade3dfc024f60b3f53db606bd0672f1bd81e0abc1b87",
+  "retrieved_at_utc": "2026-11-15T07:24:43.121544+00:00",
+  "form_query": "https://gml.noaa.gov/ccgg/mbl/ghg.php?hidden=true&param=CO2&reference_type=surface&reference=global&startyear=2000&startmonth=1&endyear=2025&endmonth=12",
+  "provider": "NOAA GML",
+  "dataset": "NOAA Greenhouse Gas Marine Boundary Layer Reference (surface)",
+  "citation": "Lan, Tans, Thoning and NOAA GML, doi:10.15138/DVNP-F961"
+}

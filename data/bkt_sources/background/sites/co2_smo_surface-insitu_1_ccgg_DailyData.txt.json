@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/co2/in-situ/surface/txt/co2_smo_surface-insitu_1_ccgg_DailyData.txt",
+  "filename": "co2_smo_surface-insitu_1_ccgg_DailyData.txt",
+  "bytes": 2223628,
+  "sha256": "04835e4a49410ea0b1d4a2082fc62d928e9dfcc1e28d9fd30ef7478a406c61a2",
+  "retrieved_at_utc": "2026-11-15T07:25:55.733981+00:00",
+  "provider": "NOAA GML CCGG in situ"
+}

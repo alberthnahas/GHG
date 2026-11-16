@@ -1,0 +1,9 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/carbontracker/co2/CT-NRT.v2025-1/molefractions/co2_total_monthly/CT-NRT.v2025-1.molefrac_glb3x2_2023-03.nc",
+  "filename": "CT-NRT.v2025-1.molefrac_glb3x2_2023-03.nc",
+  "bytes": 9122398,
+  "sha256": "14c397c7514a4024f39f48c2587a6e1b8d68cacbcae3f914804b32f0a80460d3",
+  "retrieved_at_utc": "2026-11-15T07:33:47.842363+00:00",
+  "provider": "NOAA GML",
+  "dataset": "CarbonTracker CT-NRT.v2025-1 monthly mean mole fractions"
+}

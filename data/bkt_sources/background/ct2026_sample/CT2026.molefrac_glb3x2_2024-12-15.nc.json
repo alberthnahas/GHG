@@ -1,0 +1,9 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/carbontracker/co2/CT2026/molefractions/co2_total/CT2026.molefrac_glb3x2_2024-12-15.nc",
+  "filename": "CT2026.molefrac_glb3x2_2024-12-15.nc",
+  "bytes": 58555668,
+  "sha256": "40ebd244c983a219cde7941be3649d081d20c9ebd44e57b3b78853518e2079e8",
+  "retrieved_at_utc": "2026-11-15T07:40:06.906175+00:00",
+  "provider": "NOAA GML",
+  "dataset": "CarbonTracker CT2026 daily mole fractions"
+}

@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/ch4/flask/surface/txt/ch4_smo_surface-flask_1_ccgg_month.txt",
+  "filename": "ch4_smo_surface-flask_1_ccgg_month.txt",
+  "bytes": 13183,
+  "sha256": "bd700ee5df5e1afa174f588d0296836b01cfe764bb7d3c2458de7f81e0559949",
+  "retrieved_at_utc": "2026-11-15T07:25:12.677129+00:00",
+  "provider": "NOAA GML CCGG flask"
+}

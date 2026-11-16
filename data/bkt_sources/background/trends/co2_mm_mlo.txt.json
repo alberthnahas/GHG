@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/trends/co2/co2_mm_mlo.txt",
+  "filename": "co2_mm_mlo.txt",
+  "bytes": 59678,
+  "sha256": "0ce4e7749217b4af2cca8e0bdf263856ad59b0a2946d4e98c7b22ccfbff21cad",
+  "retrieved_at_utc": "2026-11-15T07:24:55.144765+00:00",
+  "provider": "NOAA GML"
+}

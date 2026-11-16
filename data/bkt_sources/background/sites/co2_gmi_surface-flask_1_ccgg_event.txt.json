@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/co2/flask/surface/txt/co2_gmi_surface-flask_1_ccgg_event.txt",
+  "filename": "co2_gmi_surface-flask_1_ccgg_event.txt",
+  "bytes": 945546,
+  "sha256": "3bee9ea540edec97ac0b1b6286fb1360c481898beaeabd92541d03832f956ede",
+  "retrieved_at_utc": "2026-11-15T07:25:23.553136+00:00",
+  "provider": "NOAA GML CCGG flask"
+}
