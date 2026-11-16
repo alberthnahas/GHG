@@ -1,0 +1,31 @@
+{
+  "source_url": "https://ads.atmosphere.copernicus.eu/api/retrieve/v1/processes/cams-global-greenhouse-gas-forecasts",
+  "filename": "cams_ghg_fc_20240815T00_lead0_950_700hPa.grib",
+  "bytes": 5957840,
+  "sha256": "f1af6d50441e9ff319ffde3e7771fdcdd0c83190e78c72b39c5810b625610891",
+  "retrieved_at_utc": "2026-11-15T07:38:02.082900+00:00",
+  "provider": "Copernicus Atmosphere Monitoring Service (ECMWF)",
+  "dataset": "cams-global-greenhouse-gas-forecasts",
+  "request": {
+    "variable": [
+      "carbon_dioxide",
+      "methane"
+    ],
+    "pressure_level": [
+      "950",
+      "700"
+    ],
+    "date": "2024-08-15/2024-08-15",
+    "leadtime_hour": [
+      "0"
+    ],
+    "area": [
+      25,
+      60,
+      -30,
+      150
+    ],
+    "data_format": "grib"
+  },
+  "licence": "CC-BY-4.0"
+}

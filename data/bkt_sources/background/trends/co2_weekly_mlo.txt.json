@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/trends/co2/co2_weekly_mlo.txt",
+  "filename": "co2_weekly_mlo.txt",
+  "bytes": 209880,
+  "sha256": "74d9a902a493a39f4b1bccbd31ab44e66c3d5c3616cf6b93bd270dab0447b6ba",
+  "retrieved_at_utc": "2026-11-15T07:24:56.459423+00:00",
+  "provider": "NOAA GML"
+}

@@ -1,0 +1,9 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/carbontracker/ch4/CT-CH4-2025/molefractions/2020/01/CTCH4_2025.molefrac_glb3x2_2020-01-15.nc",
+  "filename": "CTCH4_2025.molefrac_glb3x2_2020-01-15.nc",
+  "bytes": 35973664,
+  "sha256": "34f06b42dae697fc967ea65138f79659885a077056b6a865b1ec96b13ba9fb5b",
+  "retrieved_at_utc": "2026-11-15T07:35:15.520719+00:00",
+  "provider": "NOAA GML",
+  "dataset": "CarbonTracker-CH4 2025 daily mole fractions"
+}

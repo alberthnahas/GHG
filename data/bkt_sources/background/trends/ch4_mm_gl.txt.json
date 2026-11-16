@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/trends/ch4/ch4_mm_gl.txt",
+  "filename": "ch4_mm_gl.txt",
+  "bytes": 46074,
+  "sha256": "b51e4a4e65275290365977bc1c7490d0e4290e2a0fd980c8a75e848e1d09f629",
+  "retrieved_at_utc": "2026-11-15T07:24:57.624748+00:00",
+  "provider": "NOAA GML"
+}

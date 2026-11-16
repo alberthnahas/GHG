@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/products/trends/co2/co2_trend_gl.txt",
+  "filename": "co2_trend_gl.txt",
+  "bytes": 148453,
+  "sha256": "909fa52cae2762fd086ec3cb531e1dda700a09a571fb5f67068dd4aadcdfde57",
+  "retrieved_at_utc": "2026-11-15T07:24:54.039102+00:00",
+  "provider": "NOAA GML"
+}

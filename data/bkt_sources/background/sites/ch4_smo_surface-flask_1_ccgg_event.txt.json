@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/ch4/flask/surface/txt/ch4_smo_surface-flask_1_ccgg_event.txt",
+  "filename": "ch4_smo_surface-flask_1_ccgg_event.txt",
+  "bytes": 1288313,
+  "sha256": "04af0d8718e5b37bae15afbc5d268b9aea7d0179ed1d1f93f87d124c1553b8d9",
+  "retrieved_at_utc": "2026-11-15T07:25:14.652436+00:00",
+  "provider": "NOAA GML CCGG flask"
+}

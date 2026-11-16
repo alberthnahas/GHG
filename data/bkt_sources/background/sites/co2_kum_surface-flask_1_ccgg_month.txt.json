@@ -1,0 +1,8 @@
+{
+  "source_url": "https://gml.noaa.gov/aftp/data/trace_gases/co2/flask/surface/txt/co2_kum_surface-flask_1_ccgg_month.txt",
+  "filename": "co2_kum_surface-flask_1_ccgg_month.txt",
+  "bytes": 14842,
+  "sha256": "6f6266dae1238dfe620fea10b1af0bb8e4b7e32d730fde921bc4c0594484c7ad",
+  "retrieved_at_utc": "2026-11-15T07:25:48.609627+00:00",
+  "provider": "NOAA GML CCGG flask"
+}
